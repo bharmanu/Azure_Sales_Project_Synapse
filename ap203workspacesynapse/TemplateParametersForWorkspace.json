@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "ap203workspacesynapse"
+		},
+		"ap203workspacesynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ap203workspacesynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"ls_ap203adlsstorage_accountKey": {
+			"value": ""
+		},
+		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://ap203synapsestorage.dfs.core.windows.net"
+		},
+		"ls_ap203adlsstorage_properties_typeProperties_url": {
+			"value": "https://ap203storageaccount.dfs.core.windows.net/"
+		},
+		"ls_serverless_sales_ldw_properties_typeProperties_server": {
+			"value": "tcp:ap203workspacesynapse-ondemand.sql.azuresynapse.net,1433"
+		},
+		"ls_serverless_sales_ldw_properties_typeProperties_database": {
+			"value": "sales_ldw"
+		},
+		"ls_synapsestorage_properties_typeProperties_url": {
+			"value": "https://ap203synapsestorage.dfs.core.windows.net/"
+		}
+	}
+}

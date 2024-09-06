@@ -1,0 +1,744 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "ap203workspacesynapse"
+		},
+		"ap203workspacesynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ap203workspacesynapse-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ap203workspacesynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"ls_ap203adlsstorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_ap203adlsstorage'"
+		},
+		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ap203synapsestorage.dfs.core.windows.net"
+		},
+		"ls_ap203adlsstorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ap203storageaccount.dfs.core.windows.net/"
+		},
+		"ls_serverless_sales_ldw_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "tcp:ap203workspacesynapse-ondemand.sql.azuresynapse.net,1433"
+		},
+		"ls_serverless_sales_ldw_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sales_ldw"
+		},
+		"ls_synapsestorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ap203synapsestorage.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Silver_Dim')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach Silver Dim",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('v_folder_sp_array')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Delete_Silver_Dim_Files",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_synapse_adls_silver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folder_path": {
+													"value": "@item().folder_path",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "Load_Silver_Dim_Ext_Tables",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Delete_Silver_Dim_Files",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": {
+											"value": "@item().sp_name",
+											"type": "Expression"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_serverless_sales_ldw",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"v_folder_sp_array": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"folder_path": "silver/dim_customer",
+								"sp_name": "silver.sp_silver_dim_customer"
+							},
+							{
+								"folder_path": "silver/dim_date",
+								"sp_name": "silver.sp_silver_dim_date"
+							},
+							{
+								"folder_path": "silver/dim_employee",
+								"sp_name": "silver.sp_silver_dim_employee"
+							},
+							{
+								"folder_path": "silver/dim_geography",
+								"sp_name": "silver.sp_silver_dim_geography"
+							}
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-09-05T14:02:58Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/ds_synapse_adls_silver')]",
+				"[concat(variables('workspaceId'), '/linkedServices/ls_serverless_sales_ldw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_synapse_adls_silver')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"folder_path": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "CustomerKey",
+						"type": "INT_32"
+					},
+					{
+						"name": "GeographyKey",
+						"type": "INT_32"
+					},
+					{
+						"name": "Customer Name",
+						"type": "UTF8"
+					},
+					{
+						"name": "BirthDate",
+						"type": "DATE"
+					},
+					{
+						"name": "MaritalStatus",
+						"type": "UTF8"
+					},
+					{
+						"name": "Gender",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ap203workspacesynapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('ap203workspacesynapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ap203workspacesynapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_ap203adlsstorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_ap203adlsstorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_ap203adlsstorage_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sales_ldw')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('ls_serverless_sales_ldw_properties_typeProperties_server')]",
+					"database": "[parameters('ls_serverless_sales_ldw_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_synapsestorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_synapsestorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimCustomer')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_customer') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_customer;\t\n\nCREATE EXTERNAL TABLE bronze.dim_customer(    \n    [CustomerKey] [int],\n\t[GeographyKey] [int],\n\t[CustomerAlternateKey] [nvarchar](15),\n\t[Title] [nvarchar](8),\n\t[FirstName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[BirthDate] [date],\n\t[MaritalStatus] [nchar](1),\n\t[Suffix] [nvarchar](10),\n\t[Gender] [nvarchar](1),\n\t[EmailAddress] [nvarchar](50),\n\t[YearlyIncome] [money],\n\t[TotalChildren] [tinyint],\n\t[NumberChildrenAtHome] [tinyint],\n\t[EnglishEducation] [nvarchar](40),\n\t[SpanishEducation] [nvarchar](40),\n\t[FrenchEducation] [nvarchar](40),\n\t[EnglishOccupation] [nvarchar](100),\n\t[SpanishOccupation] [nvarchar](100),\n\t[FrenchOccupation] [nvarchar](100),\n\t[HouseOwnerFlag] [nchar](1),\n\t[NumberCarsOwned] [tinyint],\n\t[AddressLine1] [nvarchar](120),\n\t[AddressLine2] [nvarchar](120),\n\t[Phone] [nvarchar](20),\n\t[DateFirstPurchase] [date],\n\t[CommuteDistance] [nvarchar](15) )\nWITH ( \n        LOCATION = 'dim_files/DimCustomer.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_customer'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_customer;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimDate')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_date') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_date;\t\n\nCREATE EXTERNAL TABLE bronze.dim_date(    \n\t[DateKey] [int],\n\t[FullDateAlternateKey] [date],\n\t[DayNumberOfWeek] [tinyint] ,\n\t[EnglishDayNameOfWeek] [nvarchar](10),\n\t[SpanishDayNameOfWeek] [nvarchar](10),\n\t[FrenchDayNameOfWeek] [nvarchar](10),     \n\t[DayNumberOfMonth] [tinyint],\n\t[DayNumberOfYear] [smallint],\n\t[WeekNumberOfYear] [tinyint],\n\t[EnglishMonthName] [nvarchar](10),\n\t[SpanishMonthName] [nvarchar](10),\n\t[FrenchMonthName] [nvarchar](10),\n\t[MonthNumberOfYear] [tinyint],\n\t[CalendarQuarter] [tinyint],\n\t[CalendarYear] [smallint],\n\t[CalendarSemester] [tinyint],\n\t[FiscalQuarter] [tinyint],\n\t[FiscalYear] [smallint],\n\t[FiscalSemester] [tinyint])\nWITH ( \n        LOCATION = 'dim_files/DimDate.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_date'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_date;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimEmployee')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_employee') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_employee;\t\n\nCREATE EXTERNAL TABLE bronze.dim_employee(    \n    [EmployeeKey] [int],\n\t[ParentEmployeeKey] [int],\n\t[EmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[ParentEmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[SalesTerritoryKey] [int],\n\t[FirstName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[Title] [nvarchar](50),\n\t[HireDate] [date],\n\t[BirthDate] [date],\n\t[LoginID] [nvarchar](256),\n\t[EmailAddress] [nvarchar](50),\n\t[Phone] [nvarchar](25),\n\t[MaritalStatus] [nchar](1),\n\t[EmergencyContactName] [nvarchar](50),\n\t[EmergencyContactPhone] [nvarchar](25),\n\t[SalariedFlag] [bit],\n\t[Gender] [nchar](1),\n\t[PayFrequency] [tinyint],\n\t[BaseRate] [money],\n\t[VacationHours] [smallint],\n\t[SickLeaveHours] [smallint],\n\t[CurrentFlag] [bit],\n\t[SalesPersonFlag] [bit],\n\t[DepartmentName] [nvarchar](50),\n\t[StartDate] [date],\n\t[EndDate] [date],\n\t[Status] [nvarchar](50),\n\t[EmployeePhoto] [varbinary](max))\nWITH ( \n        LOCATION = 'dim_files/DimEmployee.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_employee'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_employee;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimGeography')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_geography') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_geography;\t\n\nCREATE EXTERNAL TABLE bronze.dim_geography(    \n\t[GeographyKey] [int],\n\t[City] [nvarchar](30),\n\t[StateProvinceCode] [nvarchar](3),\n\t[StateProvinceName] [nvarchar](50),\n\t[CountryRegionCode] [nvarchar](3),\n\t[EnglishCountryRegionName] [nvarchar](50),\n\t[SpanishCountryRegionName] [nvarchar](50),\n\t[FrenchCountryRegionName] [nvarchar](50),\n\t[PostalCode] [nvarchar](15),\n\t[SalesTerritoryKey] [int],\n\t[IpAddressLocator] [nvarchar](15))\nWITH ( \n        LOCATION = 'dim_files/DimGeography.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_geography'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_geography;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimProductCategory')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product_category') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product_category;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product_category(    \n\t[ProductCategoryKey] [int],\n\t[ProductCategoryAlternateKey] [int],\n\t[EnglishProductCategoryName] [nvarchar](50),\n\t[SpanishProductCategoryName] [nvarchar](50),\n\t[FrenchProductCategoryName] [nvarchar](50))\nWITH ( \n        LOCATION = 'dim_files/DimProductCategory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product_category'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product_category;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimProductSubcategory')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product_subcategory') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product_subcategory;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product_subcategory(    \n\t[ProductSubcategoryKey] [int],\n\t[ProductSubcategoryAlternateKey] [int],\n\t[EnglishProductSubcategoryName] [nvarchar](50),\n\t[SpanishProductSubcategoryName] [nvarchar](50),\n\t[FrenchProductSubcategoryName] [nvarchar](50),\n\t[ProductCategoryKey] [int])\nWITH ( \n        LOCATION = 'dim_files/DimProductSubcategory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product_subcategory'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product_subcategory;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimProduct_Incomplete')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product(    \n\t[ProductKey] [int] 1,\n\t[ProductAlternateKey] [nvarchar](25) 2,\n\t[ProductSubcategoryKey] [int] 3,\n\t[WeightUnitMeasureCode] [nchar](3) 4,\n\t[SizeUnitMeasureCode] [nchar](3) 5,\n\t[EnglishProductName] [nvarchar](50) 6,\n\t[SpanishProductName] [nvarchar](50) 7,\n\t[FrenchProductName] [nvarchar](50) 8,\n\t[StandardCost] [money] 9,\n\t[FinishedGoodsFlag] [bit] 10,\n\t[Color] [nvarchar](15) 11,\n\t[SafetyStockLevel] [smallint] 12,\n\t[ReorderPoint] [smallint] 13,\n\t[ListPrice] [money] 14,\n\t[Size] [nvarchar](50) 15,\n\t[SizeRange] [nvarchar](50) 16,\n\t[Weight] [float] 17,\n\t[DaysToManufacture] [int] 18,\n\t[ProductLine] [nchar](2) 19,\n\t[DealerPrice] [money] 20,\n\t[Class] [nchar](2) 21,\n\t[Style] [nchar](2) 22,\n\t[ModelName] [nvarchar](50) 23,\n\t--[LargePhoto] [varbinary](max) NULL 24,\n\t[EnglishDescription] [nvarchar](400) 25,\n\t[FrenchDescription] [nvarchar](400) 26,\n\t[ChineseDescription] [nvarchar](400) 27,\n\t[ArabicDescription] [nvarchar](400) 28,\n\t[HebrewDescription] [nvarchar](400) 29,\n\t[ThaiDescription] [nvarchar](400) 30,\n\t[GermanDescription] [nvarchar](400) 31,\n\t[JapaneseDescription] [nvarchar](400) 32,\n\t[TurkishDescription] [nvarchar](400) 33,\n\t[StartDate] [datetime] 34,\n\t[EndDate] [datetime] 35,\n\t[Status] [nvarchar](7) 36)\nWITH ( \n        LOCATION = 'dim_files/DimProduct.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_DimSalesTerritory')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_sales_territory') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_sales_territory;\t\n\nCREATE EXTERNAL TABLE bronze.dim_sales_territory(    \n\t[SalesTerritoryKey] [int],\n\t[SalesTerritoryAlternateKey] [int],\n\t[SalesTerritoryRegion] [nvarchar](50),\n\t[SalesTerritoryCountry] [nvarchar](50),\n\t[SalesTerritoryGroup] [nvarchar](50))\nWITH ( \n        LOCATION = 'dim_files/DimSalesTerritory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_sales_territory'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_sales_territory;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimCustomer')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_customer\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_customer') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_customer;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [CustomerKey], \n  [GeographyKey], \n  CONCAT(firstname, ' ', lastname) as [Customer Name], \n  [BirthDate], \n  CASE WHEN MaritalStatus = 'M' THEN 'Married' WHEN MaritalStatus = 'S' THEN 'Single' END as MaritalStatus, \n  CASE WHEN Gender = 'M' THEN 'Male' WHEN Gender = 'F' THEN 'Female' END AS Gender \nFROM bronze.dim_customer;\n\nEND;\n\nEXEC silver.sp_silver_dim_customer;\nSELECT * FROM silver.dim_customer;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimDate')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_date\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_date') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_date;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_date\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_date',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [DateKey], \n  [FullDateAlternateKey], \n  [EnglishDayNameOfWeek], \n  [EnglishMonthName], \n  [CalendarYear], \n  [MonthNumberOfYear] \nFROM bronze.dim_date;\n\nEND;\n\nEXEC silver.sp_silver_dim_date;\nSELECT * FROM silver.dim_date;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimEmployee')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_employee\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_employee') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_employee;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_employee\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_employee',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [EmployeeKey], \n  [SalesTerritoryKey], \n  CONCAT(firstname, ' ', lastname) as [Employee Name], \n  [Title], \n  CASE WHEN MaritalStatus = 'M' THEN 'Married' WHEN MaritalStatus = 'S' THEN 'Single' END as MaritalStatus, \n  CASE WHEN Gender = 'M' THEN 'Male' WHEN Gender = 'F' THEN 'Female' END AS Gender, \n  [DepartmentName] \nFROM bronze.dim_employee;\n\nEND;\n\nEXEC silver.sp_silver_dim_employee;\nSELECT * FROM silver.dim_employee;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimGeography')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_geography\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_geography') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_geography;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_geography\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_geography',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [GeographyKey], \n  [City], \n  [EnglishCountryRegionName] AS [Country Name], \n  [SalesTerritoryRegion], \n  [SalesTerritoryGroup], \n  [PostalCode], \n  g.[SalesTerritoryKey] \nFROM \n  bronze.dim_geography g \n  JOIN bronze.dim_sales_territory t ON g.SalesTerritoryKey = t.SalesTerritoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_geography;\nSELECT * FROM silver.dim_geography;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimProduct_Incomplete')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_employee\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_product\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT \n  [ProductKey], \n  p.[ProductSubcategoryKey], \n  [EnglishProductName] as [Product Name], \n  EnglishProductCategoryName as Category, \n  EnglishProductSubcategoryName as Subcategory, \n  [StandardCost], \n  [Color], \n  [ModelName], \n  ISNULL(Status, 'Outdated') as Status \nFROM \n  bronze.dim_product p \n  JOIN bronze.dim_product_subcategory pc on p.ProductSubcategoryKey = pc.ProductSubcategoryKey \n  JOIN bronze.dim_product_category pg on pc.ProductCategoryKey = pg.ProductCategoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_customer;\nSELECT * FROM silver.dim_customer;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Script1_Analysis_Dimfiles_Queries')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE DATABASE sales_db;\n--DROP DATABASE sales_db;\n\nUSE sales_db;\nALTER DATABASE sales_db COLLATE Latin1_General_100_CI_AI_SC_UTF8;\n\n--DROP EXTERNAL DATA SOURCE sales_data_dimension\nCREATE EXTERNAL DATA SOURCE sales_data_dimension\nWITH(\n    LOCATION = 'abfss://data@ap203synapsestorage.dfs.core.windows.net/dim_files'\n)\n\n--DimDate.csv\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimDate.csv',\n        DATA_SOURCE = 'sales_data_dimension',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '1.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = '|',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        DateKey INT 1,\n        FullDateAlternateKey DATE 2, \n        EnglishDayNameOfWeek VARCHAR(10) 4, \n        EnglishMonthName VARCHAR(10) 10, \n        CalendarYear SMALLINT 15, \n        MonthNumberOfYear TINYINT 13\n\n    )\n    AS [result];\n\n\n--DimCustomer.csv\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimCustomer.csv',\n        DATA_SOURCE = 'sales_data_dimension',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '1.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = '|',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        CustomerKey INT 1,\n        GeographyKey INT 2,\n        firstname VARCHAR(50) 5,\n        lastname VARCHAR(50) 7,\n        BirthDate DATE 9,\n        MaritalStatus CHAR(1) 10,\n        Gender CHAR(1) 12\n    )\n    AS [result];",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Script1_Create_LDW')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "LDW_Scripts"
+				},
+				"content": {
+					"query": "CREATE DATABASE sales_ldw;\nGO\n\nUSE sales_ldw;\nGO\n\nALTER DATABASE sales_ldw COLLATE Latin1_General_100_CI_AI_SC_UTF8;\nGO\n\nCREATE SCHEMA bronze\nGO\n\nCREATE SCHEMA silver\nGO\n\nCREATE SCHEMA gold\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Script2_Data_Source')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "LDW_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nDROP EXTERNAL DATA SOURCE sales_data_src\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sales_data_src')\n    CREATE EXTERNAL DATA SOURCE sales_data_src\n    WITH\n    (    LOCATION = 'https://ap203synapsestorage.blob.core.windows.net/data'\n    );\n\nSELECT * FROM sys.external_data_sources    ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Script3_File_Formats')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "LDW_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\n--PSV with parser version 1.0\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='psv_file_format_pv1')\n  CREATE EXTERNAL FILE FORMAT psv_file_format_pv1 \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = '|'  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '1.0' )   \n      );\n\n--parquet with SnappyCodec compression\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='parquet_file_format')\n  CREATE EXTERNAL FILE FORMAT parquet_file_format  \n  WITH (  \n        FORMAT_TYPE = PARQUET,  \n        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \n       );\n       \nSELECT * FROM sys.external_file_formats      ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		}
+	]
+}
