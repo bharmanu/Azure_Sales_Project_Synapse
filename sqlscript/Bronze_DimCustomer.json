@@ -1,0 +1,20 @@
+{
+	"name": "Bronze_DimCustomer",
+	"properties": {
+		"folder": {
+			"name": "Bronze_Scripts"
+		},
+		"content": {
+			"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_customer') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_customer;\t\n\nCREATE EXTERNAL TABLE bronze.dim_customer(    \n    [CustomerKey] [int],\n\t[GeographyKey] [int],\n\t[CustomerAlternateKey] [nvarchar](15),\n\t[Title] [nvarchar](8),\n\t[FirstName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[BirthDate] [date],\n\t[MaritalStatus] [nchar](1),\n\t[Suffix] [nvarchar](10),\n\t[Gender] [nvarchar](1),\n\t[EmailAddress] [nvarchar](50),\n\t[YearlyIncome] [money],\n\t[TotalChildren] [tinyint],\n\t[NumberChildrenAtHome] [tinyint],\n\t[EnglishEducation] [nvarchar](40),\n\t[SpanishEducation] [nvarchar](40),\n\t[FrenchEducation] [nvarchar](40),\n\t[EnglishOccupation] [nvarchar](100),\n\t[SpanishOccupation] [nvarchar](100),\n\t[FrenchOccupation] [nvarchar](100),\n\t[HouseOwnerFlag] [nchar](1),\n\t[NumberCarsOwned] [tinyint],\n\t[AddressLine1] [nvarchar](120),\n\t[AddressLine2] [nvarchar](120),\n\t[Phone] [nvarchar](20),\n\t[DateFirstPurchase] [date],\n\t[CommuteDistance] [nvarchar](15) )\nWITH ( \n        LOCATION = 'dim_files/DimCustomer.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_customer'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_customer;     ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sales_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

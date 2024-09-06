@@ -1,0 +1,54 @@
+{
+	"name": "ds_synapse_adls_silver",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_synapsestorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"folder_path": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().folder_path",
+					"type": "Expression"
+				},
+				"fileSystem": "data"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "CustomerKey",
+				"type": "INT_32"
+			},
+			{
+				"name": "GeographyKey",
+				"type": "INT_32"
+			},
+			{
+				"name": "Customer Name",
+				"type": "UTF8"
+			},
+			{
+				"name": "BirthDate",
+				"type": "DATE"
+			},
+			{
+				"name": "MaritalStatus",
+				"type": "UTF8"
+			},
+			{
+				"name": "Gender",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

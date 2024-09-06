@@ -1,0 +1,20 @@
+{
+	"name": "Script2_Data_Source",
+	"properties": {
+		"folder": {
+			"name": "LDW_Scripts"
+		},
+		"content": {
+			"query": "USE sales_ldw;\nGO\n\nDROP EXTERNAL DATA SOURCE sales_data_src\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sales_data_src')\n    CREATE EXTERNAL DATA SOURCE sales_data_src\n    WITH\n    (    LOCATION = 'https://ap203synapsestorage.blob.core.windows.net/data'\n    );\n\nSELECT * FROM sys.external_data_sources    ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sales_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
