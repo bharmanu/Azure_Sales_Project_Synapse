@@ -1,5 +1,5 @@
 {
-	"name": "Process_Products",
+	"name": "dimProduct",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -9,54 +9,196 @@
 						"referenceName": "ds_dim_product_raw",
 						"type": "DatasetReference"
 					},
-					"name": "dimProduct"
+					"name": "DimProduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_ProductSubcategory",
+						"type": "DatasetReference"
+					},
+					"name": "DimProductSubcategory"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_ProductCategory",
+						"type": "DatasetReference"
+					},
+					"name": "DimCategory"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "SilverDimProduct",
+					"rejectedDataLinkedService": {
+						"referenceName": "ls_synapsestorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "SelectProductColumns"
+				},
+				{
+					"name": "CastProductCoulmn"
+				},
+				{
+					"name": "SelectSubCategoryColumns"
+				},
+				{
+					"name": "JoinCategorywithSubCategory"
+				},
+				{
+					"name": "SelectCategoryData"
+				},
+				{
+					"name": "JoinProductandCategory"
+				},
+				{
+					"name": "castCategoryColumns"
+				},
+				{
+					"name": "SelectCategoryColumns",
+					"description": "Renaming DimCategory to select1 with EnglishProductCategoryName, SpanishProductCategoryName, FrenchProductCategoryName'"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
-				"          ProductKey as string,",
-				"          Column_2 as string,",
-				"          Column_3 as string,",
-				"          Column_4 as string,",
-				"          Column_5 as string,",
-				"          Column_6 as string,",
-				"          Column_7 as string,",
-				"          Column_8 as string,",
-				"          Column_9 as string,",
-				"          Column_10 as string,",
-				"          Column_11 as string,",
-				"          Column_12 as string,",
-				"          Column_13 as string,",
-				"          Column_14 as string,",
-				"          Column_15 as string,",
-				"          Column_16 as string,",
-				"          Column_17 as string,",
-				"          Column_18 as string,",
-				"          Column_19 as string,",
-				"          Column_20 as string,",
-				"          Column_21 as string,",
-				"          Column_22 as string,",
-				"          Column_23 as string,",
-				"          Column_24 as string,",
-				"          Column_25 as string,",
-				"          Column_26 as string,",
-				"          Column_27 as string,",
-				"          Column_28 as string,",
-				"          Column_29 as string,",
-				"          Column_30 as string,",
-				"          Column_31 as string,",
-				"          Column_32 as string,",
-				"          Column_33 as string,",
-				"          Column_34 as string,",
-				"          Column_35 as string,",
-				"          Column_36 as string",
+				"          ProductKey as short,",
+				"          ProductAlternateKey as string,",
+				"          ProductSubcategoryKey as string,",
+				"          WeightUnitMeasureCode as string,",
+				"          SizeUnitMeasureCode as string,",
+				"          EnglishProductName as string,",
+				"          SpanishProductName as string,",
+				"          FrenchProductName as string,",
+				"          StandardCost as string,",
+				"          FinishedGoodsFlag as boolean,",
+				"          Color as string,",
+				"          SafetyStockLevel as short,",
+				"          ReorderPoint as short,",
+				"          ListPrice as string,",
+				"          Size as string,",
+				"          SizeRange as string,",
+				"          Weight as string,",
+				"          DaysToManufacture as short,",
+				"          ProductLine as string,",
+				"          DealerPrice as string,",
+				"          Class as string,",
+				"          Style as string,",
+				"          ModelName as string,",
+				"          LargePhoto as string,",
+				"          EnglishDescription as string,",
+				"          FrenchDescription as string,",
+				"          ChineseDescription as string,",
+				"          ArabicDescription as string,",
+				"          HebrewDescription as string,",
+				"          ThaiDescription as string,",
+				"          GermanDescription as string,",
+				"          JapaneseDescription as string,",
+				"          TurkishDescription as string,",
+				"          StartDate as string,",
+				"          EndDate as string,",
+				"          Status as string",
 				"     ),",
 				"     allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     limit: 100,",
-				"     ignoreNoFilesFound: false) ~> dimProduct"
+				"     ignoreNoFilesFound: false) ~> DimProduct",
+				"source(output(",
+				"          ProductSubcategoryKey as string,",
+				"          ProductSubcategoryAlternateKey as string,",
+				"          EnglishProductSubcategoryName as string,",
+				"          SpanishProductSubcategoryName as string,",
+				"          FrenchProductSubcategoryName as string,",
+				"          ProductCategoryKey as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false) ~> DimProductSubcategory",
+				"source(output(",
+				"          ProductCategoryKey as string,",
+				"          ProductCategoryAlternateKey as string,",
+				"          EnglishProductCategoryName as string,",
+				"          SpanishProductCategoryName as string,",
+				"          FrenchProductCategoryName as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false) ~> DimCategory",
+				"DimProduct select(mapColumn(",
+				"          ProductKey,",
+				"          ProductSubcategoryKey,",
+				"          EnglishProductName,",
+				"          Color,",
+				"          ModelName,",
+				"          Status,",
+				"          StandardCost",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectProductColumns",
+				"SelectProductColumns derive(ProductKey = toInteger(ProductKey),",
+				"          ProductSubcategoryKey = toInteger(ProductSubcategoryKey)) ~> CastProductCoulmn",
+				"DimProductSubcategory select(mapColumn(",
+				"          ProductSubcategoryKey,",
+				"          EnglishProductSubcategoryName,",
+				"          ProductCategoryKey",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectSubCategoryColumns",
+				"SelectSubCategoryColumns, SelectCategoryColumns join(SelectSubCategoryColumns@ProductCategoryKey == SelectCategoryColumns@ProductCategoryKey,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinCategorywithSubCategory",
+				"JoinCategorywithSubCategory select(mapColumn(",
+				"          ProductCategoryKey = SelectSubCategoryColumns@ProductCategoryKey,",
+				"          ProductSubcategoryKey,",
+				"          EnglishProductCategoryName,",
+				"          EnglishProductSubcategoryName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectCategoryData",
+				"CastProductCoulmn, castCategoryColumns join(CastProductCoulmn@ProductSubcategoryKey == castCategoryColumns@ProductSubcategoryKey,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinProductandCategory",
+				"SelectCategoryData derive(ProductSubcategoryKey = toInteger(ProductSubcategoryKey)) ~> castCategoryColumns",
+				"DimCategory select(mapColumn(",
+				"          ProductCategoryKey,",
+				"          EnglishProductCategoryName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectCategoryColumns",
+				"JoinProductandCategory sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          ProductKey,",
+				"          ProductSubcategoryKey = CastProductCoulmn@ProductSubcategoryKey,",
+				"          EnglishProductName,",
+				"          Color,",
+				"          ModelName,",
+				"          Status,",
+				"          StandardCost,",
+				"          ProductCategoryKey,",
+				"          ProductSubcategoryKey = castCategoryColumns@ProductSubcategoryKey,",
+				"          EnglishProductCategoryName,",
+				"          EnglishProductSubcategoryName",
+				"     )) ~> SilverDimProduct"
 			]
 		}
 	}
