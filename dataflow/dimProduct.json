@@ -29,7 +29,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "Parquet1",
+						"referenceName": "ds_silver_dim_product",
 						"type": "DatasetReference"
 					},
 					"name": "SilverDimProduct",
@@ -67,8 +67,11 @@
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     parameter1 as string",
+				"}",
 				"source(output(",
-				"          ProductKey as short,",
+				"          ProductKey as string,",
 				"          ProductAlternateKey as string,",
 				"          ProductSubcategoryKey as string,",
 				"          WeightUnitMeasureCode as string,",
@@ -77,15 +80,15 @@
 				"          SpanishProductName as string,",
 				"          FrenchProductName as string,",
 				"          StandardCost as string,",
-				"          FinishedGoodsFlag as boolean,",
+				"          FinishedGoodsFlag as string,",
 				"          Color as string,",
-				"          SafetyStockLevel as short,",
-				"          ReorderPoint as short,",
+				"          SafetyStockLevel as string,",
+				"          ReorderPoint as string,",
 				"          ListPrice as string,",
 				"          Size as string,",
 				"          SizeRange as string,",
 				"          Weight as string,",
-				"          DaysToManufacture as short,",
+				"          DaysToManufacture as string,",
 				"          ProductLine as string,",
 				"          DealerPrice as string,",
 				"          Class as string,",

@@ -1,5 +1,5 @@
 {
-	"name": "Parquet1",
+	"name": "ds_silver_dim_product",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_synapsestorage",
