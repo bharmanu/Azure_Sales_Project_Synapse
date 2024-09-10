@@ -1,5 +1,5 @@
 {
-	"name": "ds_dim_product_raw",
+	"name": "ds_dim_product",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_synapsestorage",
