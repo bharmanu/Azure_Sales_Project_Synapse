@@ -38,55 +38,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/Pl__Products')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"activities": [
-					{
-						"name": "Data flow1",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "dimProduct",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"DimProduct": {},
-									"DimProductSubcategory": {},
-									"DimCategory": {},
-									"SilverDimProduct": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Silver_Dim')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -203,28 +154,51 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
-			"type": "Microsoft.Synapse/workspaces/datasets",
+			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Silver_Products')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_synapsestorage",
-					"type": "LinkedServiceReference"
+				"activities": [
+					{
+						"name": "ProcessDimProduct",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dimProduct",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DimProduct": {},
+									"DimProductSubcategory": {},
+									"DimCategory": {},
+									"SilverDimProduct": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
 				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "silver/dim_product",
-						"fileSystem": "data"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
+				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]"
 			]
 		},
 		{
@@ -332,7 +306,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/ds_dim_product_raw')]",
+			"name": "[concat(parameters('workspaceName'), '/ds_dim_product')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -500,6 +474,31 @@
 						"type": "String"
 					}
 				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_silver_dim_product')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/dim_product",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
@@ -690,7 +689,7 @@
 					"sources": [
 						{
 							"dataset": {
-								"referenceName": "ds_dim_product_raw",
+								"referenceName": "ds_dim_product",
 								"type": "DatasetReference"
 							},
 							"name": "DimProduct"
@@ -713,7 +712,7 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "Parquet1",
+								"referenceName": "ds_silver_dim_product",
 								"type": "DatasetReference"
 							},
 							"name": "SilverDimProduct",
@@ -752,7 +751,7 @@
 					],
 					"scriptLines": [
 						"source(output(",
-						"          ProductKey as short,",
+						"          ProductKey as string,",
 						"          ProductAlternateKey as string,",
 						"          ProductSubcategoryKey as string,",
 						"          WeightUnitMeasureCode as string,",
@@ -761,15 +760,15 @@
 						"          SpanishProductName as string,",
 						"          FrenchProductName as string,",
 						"          StandardCost as string,",
-						"          FinishedGoodsFlag as boolean,",
+						"          FinishedGoodsFlag as string,",
 						"          Color as string,",
-						"          SafetyStockLevel as short,",
-						"          ReorderPoint as short,",
+						"          SafetyStockLevel as string,",
+						"          ReorderPoint as string,",
 						"          ListPrice as string,",
 						"          Size as string,",
 						"          SizeRange as string,",
 						"          Weight as string,",
-						"          DaysToManufacture as short,",
+						"          DaysToManufacture as string,",
 						"          ProductLine as string,",
 						"          DealerPrice as string,",
 						"          Class as string,",
@@ -887,10 +886,10 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/ds_dim_product_raw')]",
+				"[concat(variables('workspaceId'), '/datasets/ds_dim_product')]",
 				"[concat(variables('workspaceId'), '/datasets/ds_dim_ProductSubcategory')]",
 				"[concat(variables('workspaceId'), '/datasets/ds_dim_ProductCategory')]",
-				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/datasets/ds_silver_dim_product')]",
 				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
 			]
 		},
