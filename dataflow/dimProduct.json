@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ds_dim_product_raw",
+						"referenceName": "ds_dim_product",
 						"type": "DatasetReference"
 					},
 					"name": "DimProduct"
@@ -67,9 +67,6 @@
 				}
 			],
 			"scriptLines": [
-				"parameters{",
-				"     parameter1 as string",
-				"}",
 				"source(output(",
 				"          ProductKey as string,",
 				"          ProductAlternateKey as string,",
