@@ -12,17 +12,13 @@
 			"metadata": "Secure string for 'connectionString' of 'ap203workspacesynapse-WorkspaceDefaultSqlServer'",
 			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ap203workspacesynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
-		"ls_ap203adlsstorage_accountKey": {
-			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'ls_ap203adlsstorage'"
-		},
 		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://ap203synapsestorage.dfs.core.windows.net"
 		},
-		"ls_ap203adlsstorage_properties_typeProperties_url": {
+		"ls_ap203keyvault_properties_typeProperties_baseUrl": {
 			"type": "string",
-			"defaultValue": "https://ap203storageaccount.dfs.core.windows.net/"
+			"defaultValue": "https://ap203keyvault1.vault.azure.net/"
 		},
 		"ls_serverless_sales_ldw_properties_typeProperties_server": {
 			"type": "string",
@@ -41,6 +37,55 @@
 		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pl__Products')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dimProduct",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DimProduct": {},
+									"DimProductSubcategory": {},
+									"DimCategory": {},
+									"SilverDimProduct": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Silver_Dim')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
@@ -158,6 +203,309 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/dim_product",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_dim_ProductCategory')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimProductCategory.csv",
+						"folderPath": "dim_files",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ProductCategoryKey",
+						"type": "String"
+					},
+					{
+						"name": "ProductCategoryAlternateKey",
+						"type": "String"
+					},
+					{
+						"name": "EnglishProductCategoryName",
+						"type": "String"
+					},
+					{
+						"name": "SpanishProductCategoryName",
+						"type": "String"
+					},
+					{
+						"name": "FrenchProductCategoryName",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_dim_ProductSubcategory')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimProductSubcategory.csv",
+						"folderPath": "dim_files",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ProductSubcategoryKey",
+						"type": "String"
+					},
+					{
+						"name": "ProductSubcategoryAlternateKey",
+						"type": "String"
+					},
+					{
+						"name": "EnglishProductSubcategoryName",
+						"type": "String"
+					},
+					{
+						"name": "SpanishProductSubcategoryName",
+						"type": "String"
+					},
+					{
+						"name": "FrenchProductSubcategoryName",
+						"type": "String"
+					},
+					{
+						"name": "ProductCategoryKey",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_dim_product_raw')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimProduct.csv",
+						"folderPath": "dim_files",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ProductKey",
+						"type": "String"
+					},
+					{
+						"name": "ProductAlternateKey",
+						"type": "String"
+					},
+					{
+						"name": "ProductSubcategoryKey",
+						"type": "String"
+					},
+					{
+						"name": "WeightUnitMeasureCode",
+						"type": "String"
+					},
+					{
+						"name": "SizeUnitMeasureCode",
+						"type": "String"
+					},
+					{
+						"name": "EnglishProductName",
+						"type": "String"
+					},
+					{
+						"name": "SpanishProductName",
+						"type": "String"
+					},
+					{
+						"name": "FrenchProductName",
+						"type": "String"
+					},
+					{
+						"name": "StandardCost",
+						"type": "String"
+					},
+					{
+						"name": "FinishedGoodsFlag",
+						"type": "String"
+					},
+					{
+						"name": "Color",
+						"type": "String"
+					},
+					{
+						"name": "SafetyStockLevel",
+						"type": "String"
+					},
+					{
+						"name": "ReorderPoint",
+						"type": "String"
+					},
+					{
+						"name": "ListPrice",
+						"type": "String"
+					},
+					{
+						"name": "Size",
+						"type": "String"
+					},
+					{
+						"name": "SizeRange",
+						"type": "String"
+					},
+					{
+						"name": "Weight",
+						"type": "String"
+					},
+					{
+						"name": "DaysToManufacture",
+						"type": "String"
+					},
+					{
+						"name": "ProductLine",
+						"type": "String"
+					},
+					{
+						"name": "DealerPrice",
+						"type": "String"
+					},
+					{
+						"name": "Class",
+						"type": "String"
+					},
+					{
+						"name": "Style",
+						"type": "String"
+					},
+					{
+						"name": "ModelName",
+						"type": "String"
+					},
+					{
+						"name": "LargePhoto",
+						"type": "String"
+					},
+					{
+						"name": "EnglishDescription",
+						"type": "String"
+					},
+					{
+						"name": "FrenchDescription",
+						"type": "String"
+					},
+					{
+						"name": "ChineseDescription",
+						"type": "String"
+					},
+					{
+						"name": "ArabicDescription",
+						"type": "String"
+					},
+					{
+						"name": "HebrewDescription",
+						"type": "String"
+					},
+					{
+						"name": "ThaiDescription",
+						"type": "String"
+					},
+					{
+						"name": "GermanDescription",
+						"type": "String"
+					},
+					{
+						"name": "JapaneseDescription",
+						"type": "String"
+					},
+					{
+						"name": "TurkishDescription",
+						"type": "String"
+					},
+					{
+						"name": "StartDate",
+						"type": "String"
+					},
+					{
+						"name": "EndDate",
+						"type": "String"
+					},
+					{
+						"name": "Status",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/ds_synapse_adls_silver')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -259,27 +607,17 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/ls_ap203adlsstorage')]",
+			"name": "[concat(parameters('workspaceName'), '/ls_ap203keyvault')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"annotations": [],
-				"type": "AzureBlobFS",
+				"type": "AzureKeyVault",
 				"typeProperties": {
-					"url": "[parameters('ls_ap203adlsstorage_properties_typeProperties_url')]",
-					"accountKey": {
-						"type": "SecureString",
-						"value": "[parameters('ls_ap203adlsstorage_accountKey')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
+					"baseUrl": "[parameters('ls_ap203keyvault_properties_typeProperties_baseUrl')]"
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sales_ldw')]",
@@ -341,6 +679,220 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dimProduct')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_dim_product_raw",
+								"type": "DatasetReference"
+							},
+							"name": "DimProduct"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_dim_ProductSubcategory",
+								"type": "DatasetReference"
+							},
+							"name": "DimProductSubcategory"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_dim_ProductCategory",
+								"type": "DatasetReference"
+							},
+							"name": "DimCategory"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "SilverDimProduct",
+							"rejectedDataLinkedService": {
+								"referenceName": "ls_synapsestorage",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"transformations": [
+						{
+							"name": "SelectProductColumns"
+						},
+						{
+							"name": "CastProductCoulmn"
+						},
+						{
+							"name": "SelectSubCategoryColumns"
+						},
+						{
+							"name": "JoinCategorywithSubCategory"
+						},
+						{
+							"name": "SelectCategoryData"
+						},
+						{
+							"name": "JoinProductandCategory"
+						},
+						{
+							"name": "castCategoryColumns"
+						},
+						{
+							"name": "SelectCategoryColumns",
+							"description": "Renaming DimCategory to select1 with EnglishProductCategoryName, SpanishProductCategoryName, FrenchProductCategoryName'"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ProductKey as short,",
+						"          ProductAlternateKey as string,",
+						"          ProductSubcategoryKey as string,",
+						"          WeightUnitMeasureCode as string,",
+						"          SizeUnitMeasureCode as string,",
+						"          EnglishProductName as string,",
+						"          SpanishProductName as string,",
+						"          FrenchProductName as string,",
+						"          StandardCost as string,",
+						"          FinishedGoodsFlag as boolean,",
+						"          Color as string,",
+						"          SafetyStockLevel as short,",
+						"          ReorderPoint as short,",
+						"          ListPrice as string,",
+						"          Size as string,",
+						"          SizeRange as string,",
+						"          Weight as string,",
+						"          DaysToManufacture as short,",
+						"          ProductLine as string,",
+						"          DealerPrice as string,",
+						"          Class as string,",
+						"          Style as string,",
+						"          ModelName as string,",
+						"          LargePhoto as string,",
+						"          EnglishDescription as string,",
+						"          FrenchDescription as string,",
+						"          ChineseDescription as string,",
+						"          ArabicDescription as string,",
+						"          HebrewDescription as string,",
+						"          ThaiDescription as string,",
+						"          GermanDescription as string,",
+						"          JapaneseDescription as string,",
+						"          TurkishDescription as string,",
+						"          StartDate as string,",
+						"          EndDate as string,",
+						"          Status as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     limit: 100,",
+						"     ignoreNoFilesFound: false) ~> DimProduct",
+						"source(output(",
+						"          ProductSubcategoryKey as string,",
+						"          ProductSubcategoryAlternateKey as string,",
+						"          EnglishProductSubcategoryName as string,",
+						"          SpanishProductSubcategoryName as string,",
+						"          FrenchProductSubcategoryName as string,",
+						"          ProductCategoryKey as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     limit: 100,",
+						"     ignoreNoFilesFound: false) ~> DimProductSubcategory",
+						"source(output(",
+						"          ProductCategoryKey as string,",
+						"          ProductCategoryAlternateKey as string,",
+						"          EnglishProductCategoryName as string,",
+						"          SpanishProductCategoryName as string,",
+						"          FrenchProductCategoryName as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     limit: 100,",
+						"     ignoreNoFilesFound: false) ~> DimCategory",
+						"DimProduct select(mapColumn(",
+						"          ProductKey,",
+						"          ProductSubcategoryKey,",
+						"          EnglishProductName,",
+						"          Color,",
+						"          ModelName,",
+						"          Status,",
+						"          StandardCost",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectProductColumns",
+						"SelectProductColumns derive(ProductKey = toInteger(ProductKey),",
+						"          ProductSubcategoryKey = toInteger(ProductSubcategoryKey)) ~> CastProductCoulmn",
+						"DimProductSubcategory select(mapColumn(",
+						"          ProductSubcategoryKey,",
+						"          EnglishProductSubcategoryName,",
+						"          ProductCategoryKey",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectSubCategoryColumns",
+						"SelectSubCategoryColumns, SelectCategoryColumns join(SelectSubCategoryColumns@ProductCategoryKey == SelectCategoryColumns@ProductCategoryKey,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinCategorywithSubCategory",
+						"JoinCategorywithSubCategory select(mapColumn(",
+						"          ProductCategoryKey = SelectSubCategoryColumns@ProductCategoryKey,",
+						"          ProductSubcategoryKey,",
+						"          EnglishProductCategoryName,",
+						"          EnglishProductSubcategoryName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectCategoryData",
+						"CastProductCoulmn, castCategoryColumns join(CastProductCoulmn@ProductSubcategoryKey == castCategoryColumns@ProductSubcategoryKey,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinProductandCategory",
+						"SelectCategoryData derive(ProductSubcategoryKey = toInteger(ProductSubcategoryKey)) ~> castCategoryColumns",
+						"DimCategory select(mapColumn(",
+						"          ProductCategoryKey,",
+						"          EnglishProductCategoryName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectCategoryColumns",
+						"JoinProductandCategory sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     truncate: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          ProductKey,",
+						"          ProductSubcategoryKey = CastProductCoulmn@ProductSubcategoryKey,",
+						"          EnglishProductName,",
+						"          Color,",
+						"          ModelName,",
+						"          Status,",
+						"          StandardCost,",
+						"          ProductCategoryKey,",
+						"          ProductSubcategoryKey = castCategoryColumns@ProductSubcategoryKey,",
+						"          EnglishProductCategoryName,",
+						"          EnglishProductSubcategoryName",
+						"     )) ~> SilverDimProduct"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/ds_dim_product_raw')]",
+				"[concat(variables('workspaceId'), '/datasets/ds_dim_ProductSubcategory')]",
+				"[concat(variables('workspaceId'), '/datasets/ds_dim_ProductCategory')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
@@ -499,7 +1051,7 @@
 					"name": "Bronze_Scripts"
 				},
 				"content": {
-					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product(    \n\t[ProductKey] [int] 1,\n\t[ProductAlternateKey] [nvarchar](25) 2,\n\t[ProductSubcategoryKey] [int] 3,\n\t[WeightUnitMeasureCode] [nchar](3) 4,\n\t[SizeUnitMeasureCode] [nchar](3) 5,\n\t[EnglishProductName] [nvarchar](50) 6,\n\t[SpanishProductName] [nvarchar](50) 7,\n\t[FrenchProductName] [nvarchar](50) 8,\n\t[StandardCost] [money] 9,\n\t[FinishedGoodsFlag] [bit] 10,\n\t[Color] [nvarchar](15) 11,\n\t[SafetyStockLevel] [smallint] 12,\n\t[ReorderPoint] [smallint] 13,\n\t[ListPrice] [money] 14,\n\t[Size] [nvarchar](50) 15,\n\t[SizeRange] [nvarchar](50) 16,\n\t[Weight] [float] 17,\n\t[DaysToManufacture] [int] 18,\n\t[ProductLine] [nchar](2) 19,\n\t[DealerPrice] [money] 20,\n\t[Class] [nchar](2) 21,\n\t[Style] [nchar](2) 22,\n\t[ModelName] [nvarchar](50) 23,\n\t--[LargePhoto] [varbinary](max) NULL 24,\n\t[EnglishDescription] [nvarchar](400) 25,\n\t[FrenchDescription] [nvarchar](400) 26,\n\t[ChineseDescription] [nvarchar](400) 27,\n\t[ArabicDescription] [nvarchar](400) 28,\n\t[HebrewDescription] [nvarchar](400) 29,\n\t[ThaiDescription] [nvarchar](400) 30,\n\t[GermanDescription] [nvarchar](400) 31,\n\t[JapaneseDescription] [nvarchar](400) 32,\n\t[TurkishDescription] [nvarchar](400) 33,\n\t[StartDate] [datetime] 34,\n\t[EndDate] [datetime] 35,\n\t[Status] [nvarchar](7) 36)\nWITH ( \n        LOCATION = 'dim_files/DimProduct.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product;     ",
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product(    \n\t[ProductKey] [int] 1,               ---1\n\t[ProductAlternateKey] [nvarchar](25) 2,\n\t[ProductSubcategoryKey] [int] 3,           ---3\n\t[WeightUnitMeasureCode] [nchar](3) 4,\n\t[SizeUnitMeasureCode] [nchar](3) 5,\n\t[EnglishProductName] [nvarchar](50) 6,     ----6\n\t[SpanishProductName] [nvarchar](50) 7,\n\t[FrenchProductName] [nvarchar](50) 8,\n\t[StandardCost] [money] 9,         ------9\n\t[FinishedGoodsFlag] [bit] 10,\n\t[Color] [nvarchar](15) 11,         -----11\n\t[SafetyStockLevel] [smallint] 12,\n\t[ReorderPoint] [smallint] 13,\n\t[ListPrice] [money] 14,\n\t[Size] [nvarchar](50) 15,\n\t[SizeRange] [nvarchar](50) 16,\n\t[Weight] [float] 17,\n\t[DaysToManufacture] [int] 18,\n\t[ProductLine] [nchar](2) 19,\n\t[DealerPrice] [money] 20,\n\t[Class] [nchar](2) 21,\n\t[Style] [nchar](2) 22,\n\t[ModelName] [nvarchar](50) 23,          ---------23\n\t--[LargePhoto] [varbinary](max) NULL 24,\n\t[EnglishDescription] [nvarchar](400) 25,\n\t[FrenchDescription] [nvarchar](400) 26,\n\t[ChineseDescription] [nvarchar](400) 27,\n\t[ArabicDescription] [nvarchar](400) 28,\n\t[HebrewDescription] [nvarchar](400) 29,\n\t[ThaiDescription] [nvarchar](400) 30,\n\t[GermanDescription] [nvarchar](400) 31,\n\t[JapaneseDescription] [nvarchar](400) 32,\n\t[TurkishDescription] [nvarchar](400) 33,\n\t[StartDate] [datetime] 34,\n\t[EndDate] [datetime] 35,\n\t[Status] [nvarchar](7) 36).   -------36\nWITH ( \n        LOCATION = 'dim_files/DimProduct.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product;     ",
 					"metadata": {
 						"language": "sql"
 					},
