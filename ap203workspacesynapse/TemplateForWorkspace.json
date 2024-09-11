@@ -12,6 +12,10 @@
 			"metadata": "Secure string for 'connectionString' of 'ap203workspacesynapse-WorkspaceDefaultSqlServer'",
 			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ap203workspacesynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"ls_ap203storageaccount_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_ap203storageaccount'"
+		},
 		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://ap203synapsestorage.dfs.core.windows.net"
@@ -19,6 +23,10 @@
 		"ls_ap203keyvault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://ap203keyvault1.vault.azure.net/"
+		},
+		"ls_ap203storageaccount_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ap203storageaccount.dfs.core.windows.net/"
 		},
 		"ls_serverless_sales_ldw_properties_typeProperties_server": {
 			"type": "string",
@@ -37,6 +45,170 @@
 		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_FcatSales')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_hhz",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "data/fact/processed/FactInternetSales/"
+							},
+							{
+								"name": "Destination",
+								"value": "data/silver/fact_sales/"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings",
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"validateDataConsistency": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_hhz",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_hhz",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_hhz')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_hhz')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Processed_Silver_Fact')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_processed_fact",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings",
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_processed_fact",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_processed_fact_sales",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/ds_processed_fact')]",
+				"[concat(variables('workspaceId'), '/datasets/ds_processed_fact_sales')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Silver_Dim')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
@@ -199,6 +371,97 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_hhz')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/fact_sales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_hhz')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_ap203storageaccount",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "fact/processed/FactInternetSales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "ProductKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDateKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "CustomerKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesTerritoryKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderLineNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderQuantity",
+						"type": "UTF8"
+					},
+					{
+						"name": "ProductStandardCost",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesAmount",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDate",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_ap203storageaccount')]"
 			]
 		},
 		{
@@ -480,6 +743,122 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/ds_processed_fact')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_ap203storageaccount",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "fact/processed/FactInternetSales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "ProductKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDateKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "CustomerKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesTerritoryKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderLineNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderQuantity",
+						"type": "UTF8"
+					},
+					{
+						"name": "ProductStandardCost",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesAmount",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDate",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_ap203storageaccount')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ds_processed_fact_sales')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/fact_sales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "CustomerKey",
+						"type": "INT_32"
+					},
+					{
+						"name": "GeographyKey",
+						"type": "INT_32"
+					},
+					{
+						"name": "Customer Name",
+						"type": "UTF8"
+					},
+					{
+						"name": "BirthDate",
+						"type": "DATE"
+					},
+					{
+						"name": "MaritalStatus",
+						"type": "UTF8"
+					},
+					{
+						"name": "Gender",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/ds_silver_dim_product')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -617,6 +996,29 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_ap203storageaccount')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_ap203storageaccount_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_ap203storageaccount_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sales_ldw')]",

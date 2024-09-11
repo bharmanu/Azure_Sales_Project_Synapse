@@ -8,11 +8,17 @@
 		"ap203workspacesynapse-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ap203workspacesynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"ls_ap203storageaccount_accountKey": {
+			"value": ""
+		},
 		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://ap203synapsestorage.dfs.core.windows.net"
 		},
 		"ls_ap203keyvault_properties_typeProperties_baseUrl": {
 			"value": "https://ap203keyvault1.vault.azure.net/"
+		},
+		"ls_ap203storageaccount_properties_typeProperties_url": {
+			"value": "https://ap203storageaccount.dfs.core.windows.net/"
 		},
 		"ls_serverless_sales_ldw_properties_typeProperties_server": {
 			"value": "tcp:ap203workspacesynapse-ondemand.sql.azuresynapse.net,1433"
