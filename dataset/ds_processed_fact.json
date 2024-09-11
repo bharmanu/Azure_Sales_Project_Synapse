@@ -1,0 +1,61 @@
+{
+	"name": "ds_processed_fact",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ap203storageaccount",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "fact/processed/FactInternetSales",
+				"fileSystem": "data"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "ProductKey",
+				"type": "UTF8"
+			},
+			{
+				"name": "OrderDateKey",
+				"type": "UTF8"
+			},
+			{
+				"name": "CustomerKey",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesTerritoryKey",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesOrderNumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesOrderLineNumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "OrderQuantity",
+				"type": "UTF8"
+			},
+			{
+				"name": "ProductStandardCost",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesAmount",
+				"type": "UTF8"
+			},
+			{
+				"name": "OrderDate",
+				"type": "UTF8"
+			}
+		]
+	}
+}

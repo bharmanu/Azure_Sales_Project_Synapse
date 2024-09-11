@@ -1,0 +1,45 @@
+{
+	"name": "ds_processed_fact_sales",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_synapsestorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "silver/fact_sales",
+				"fileSystem": "data"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "CustomerKey",
+				"type": "INT_32"
+			},
+			{
+				"name": "GeographyKey",
+				"type": "INT_32"
+			},
+			{
+				"name": "Customer Name",
+				"type": "UTF8"
+			},
+			{
+				"name": "BirthDate",
+				"type": "DATE"
+			},
+			{
+				"name": "MaritalStatus",
+				"type": "UTF8"
+			},
+			{
+				"name": "Gender",
+				"type": "UTF8"
+			}
+		]
+	}
+}
