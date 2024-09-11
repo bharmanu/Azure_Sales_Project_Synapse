@@ -1,0 +1,20 @@
+{
+	"name": "DestinationDataset_l34",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_synapsestorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "silver/fact_sales",
+				"fileSystem": "data"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
