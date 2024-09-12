@@ -46,13 +46,13 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_FcatSales')]",
+			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_synapse_silver_fact')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy_hhz",
+						"name": "Copy_l34",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -88,8 +88,7 @@
 							"sink": {
 								"type": "ParquetSink",
 								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings",
-									"copyBehavior": "PreserveHierarchy"
+									"type": "AzureBlobFSWriteSettings"
 								},
 								"formatSettings": {
 									"type": "ParquetWriteSettings"
@@ -108,14 +107,14 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "SourceDataset_hhz",
+								"referenceName": "SourceDataset_l34",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "DestinationDataset_hhz",
+								"referenceName": "DestinationDataset_l34",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -128,8 +127,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/SourceDataset_hhz')]",
-				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_hhz')]"
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_l34')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_l34')]"
 			]
 		},
 		{
@@ -399,7 +398,98 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_l34')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_synapsestorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/fact_sales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_synapsestorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SourceDataset_hhz')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_ap203storageaccount",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "fact/processed/FactInternetSales",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "ProductKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDateKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "CustomerKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesTerritoryKey",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesOrderLineNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderQuantity",
+						"type": "UTF8"
+					},
+					{
+						"name": "ProductStandardCost",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesAmount",
+						"type": "UTF8"
+					},
+					{
+						"name": "OrderDate",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_ap203storageaccount')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_l34')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -1490,6 +1580,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Bronze_FactInternetSales')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Bronze_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.fact_internet_sales') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.fact_internet_sales;\t\n\nCREATE EXTERNAL TABLE bronze.fact_internet_sales(    \n\t[ProductKey] [int],\n\t[OrderDateKey] [int],\n\t[DueDateKey] [int],\n\t[ShipDateKey] [int],\n\t[CustomerKey] [int],\n\t[PromotionKey] [int],\n\t[CurrencyKey] [int],\n\t[SalesTerritoryKey] [int],\n\t[SalesOrderNumber] [nvarchar](20),\n\t[SalesOrderLineNumber] [tinyint],\n\t[RevisionNumber] [tinyint],\n\t[OrderQuantity] [smallint],\n\t[UnitPrice] [money],\n\t[ExtendedAmount] [money],\n\t[UnitPriceDiscountPct] [float],\n\t[DiscountAmount] [float],\n\t[ProductStandardCost] [money],\n\t[TotalProductCost] [money],\n\t[SalesAmount] [money],\n\t[TaxAmt] [money],\n\t[Freight] [money],\n\t[CarrierTrackingNumber] [nvarchar](25),\n\t[CustomerPONumber] [nvarchar](25),\n\t[OrderDate] [datetime],\n\t[DueDate] [datetime],\n\t[ShipDate] [datetime])\nWITH ( \n        LOCATION = 'fact_files/FactInternetSales.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/fact_internet_sales'\n    );\n\nSELECT TOP 10 * FROM bronze.fact_internet_sales;     ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimCustomer')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1591,6 +1704,29 @@
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_product\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\nCREATE EXTERNAL TABLE silver.dim_product(    \n\t[ProductKey] [int],\n  [ProductSubcategoryKey] [int] , \n  [EnglishProductName] [nvarchar](50), \n  [Color] [nvarchar](15),\n  [ModelName] [nvarchar](50), \n  [Status] [nvarchar](7), \n  [StandardCost] [nvarchar](10),\n  [ProductCategoryKey] [nvarchar](10), \n  [EnglishProductCategoryName] [nvarchar](50), \n  [EnglishProductSubcategoryName] [varchar](50))\nWITH ( \n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    );\n\nEND;\n\nEXEC silver.sp_silver_dim_product;\nSELECT * FROM silver.dim_product;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_FactSales')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Silver_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_fact_internet_sales\nAS\nBEGIN\n    IF OBJECT_ID('silver.fact_internet_sales') IS NOT NULL\n        DROP EXTERNAL TABLE silver.fact_internet_sales;\n\n\n\nCREATE EXTERNAL TABLE silver.fact_internet_sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/fact_internet_sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [ProductKey], \n  [OrderDateKey], \n  [CustomerKey], \n  [SalesTerritoryKey], \n  [SalesOrderNumber], \n  [SalesOrderLineNumber], \n  [OrderQuantity], \n  [ProductStandardCost], \n  [SalesAmount], \n  CAST([OrderDate] AS date) AS OrderDate\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC silver.sp_silver_fact_internet_sales;\nSELECT * FROM silver.fact_internet_sales;\n",
 					"metadata": {
 						"language": "sql"
 					},
