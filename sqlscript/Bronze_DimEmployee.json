@@ -2,7 +2,7 @@
 	"name": "Bronze_DimEmployee",
 	"properties": {
 		"folder": {
-			"name": "Bronze_Scripts"
+			"name": "2Bronze_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_employee') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_employee;\t\n\nCREATE EXTERNAL TABLE bronze.dim_employee(    \n    [EmployeeKey] [int],\n\t[ParentEmployeeKey] [int],\n\t[EmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[ParentEmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[SalesTerritoryKey] [int],\n\t[FirstName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[Title] [nvarchar](50),\n\t[HireDate] [date],\n\t[BirthDate] [date],\n\t[LoginID] [nvarchar](256),\n\t[EmailAddress] [nvarchar](50),\n\t[Phone] [nvarchar](25),\n\t[MaritalStatus] [nchar](1),\n\t[EmergencyContactName] [nvarchar](50),\n\t[EmergencyContactPhone] [nvarchar](25),\n\t[SalariedFlag] [bit],\n\t[Gender] [nchar](1),\n\t[PayFrequency] [tinyint],\n\t[BaseRate] [money],\n\t[VacationHours] [smallint],\n\t[SickLeaveHours] [smallint],\n\t[CurrentFlag] [bit],\n\t[SalesPersonFlag] [bit],\n\t[DepartmentName] [nvarchar](50),\n\t[StartDate] [date],\n\t[EndDate] [date],\n\t[Status] [nvarchar](50),\n\t[EmployeePhoto] [varbinary](max))\nWITH ( \n        LOCATION = 'dim_files/DimEmployee.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_employee'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_employee;     ",

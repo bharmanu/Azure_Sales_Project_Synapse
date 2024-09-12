@@ -1,0 +1,20 @@
+{
+	"name": "SP_Gold_Sales",
+	"properties": {
+		"folder": {
+			"name": "4Gold_Scripts"
+		},
+		"content": {
+			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_sales\nAS\nBEGIN\n    IF OBJECT_ID('gold.sales') IS NOT NULL\n        DROP EXTERNAL TABLE gold.sales;\n\n\n\nCREATE EXTERNAL TABLE gold.sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  SUM(SalesAmount) as [Total Revenue],\n  SUM(ProductStandardCost) as [Total Cost],\n  SUM(SalesAmount)-SUM(ProductStandardCost) as [Profit],\n  SUM(SalesAmount)-SUM(ProductStandardCost)/SUM(SalesAmount) as [Profit Margin %],\n  COUNT(DISTINCT(CustomerKey)) as [Total Customers],\n  count(*) as [Total Transaction]\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC gold.sp_gold_sales;\nSELECT * FROM gold.sales;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sales_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

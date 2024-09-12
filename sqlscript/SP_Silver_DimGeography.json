@@ -2,7 +2,7 @@
 	"name": "SP_Silver_DimGeography",
 	"properties": {
 		"folder": {
-			"name": "Silver_Scripts"
+			"name": "3Silver_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_geography\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_geography') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_geography;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_geography\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_geography',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [GeographyKey], \n  [City], \n  [EnglishCountryRegionName] AS [Country Name], \n  [SalesTerritoryRegion], \n  [SalesTerritoryGroup], \n  [PostalCode], \n  g.[SalesTerritoryKey] \nFROM \n  bronze.dim_geography g \n  JOIN bronze.dim_sales_territory t ON g.SalesTerritoryKey = t.SalesTerritoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_geography;\nSELECT * FROM silver.dim_geography;\n",

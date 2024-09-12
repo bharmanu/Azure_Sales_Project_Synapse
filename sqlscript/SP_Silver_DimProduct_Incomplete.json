@@ -2,7 +2,7 @@
 	"name": "SP_Silver_DimProduct_Incomplete",
 	"properties": {
 		"folder": {
-			"name": "Silver_Scripts"
+			"name": "3Silver_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_product\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\nCREATE EXTERNAL TABLE silver.dim_product(    \n\t[ProductKey] [int],\n  [ProductSubcategoryKey] [int] , \n  [EnglishProductName] [nvarchar](50), \n  [Color] [nvarchar](15),\n  [ModelName] [nvarchar](50), \n  [Status] [nvarchar](7), \n  [StandardCost] [nvarchar](10),\n  [ProductCategoryKey] [nvarchar](10), \n  [EnglishProductCategoryName] [nvarchar](50), \n  [EnglishProductSubcategoryName] [varchar](50))\nWITH ( \n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    );\n\nEND;\n\nEXEC silver.sp_silver_dim_product;\nSELECT * FROM silver.dim_product;\n",
