@@ -1401,7 +1401,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_customer') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_customer;\t\n\nCREATE EXTERNAL TABLE bronze.dim_customer(    \n    [CustomerKey] [int],\n\t[GeographyKey] [int],\n\t[CustomerAlternateKey] [nvarchar](15),\n\t[Title] [nvarchar](8),\n\t[FirstName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[BirthDate] [date],\n\t[MaritalStatus] [nchar](1),\n\t[Suffix] [nvarchar](10),\n\t[Gender] [nvarchar](1),\n\t[EmailAddress] [nvarchar](50),\n\t[YearlyIncome] [money],\n\t[TotalChildren] [tinyint],\n\t[NumberChildrenAtHome] [tinyint],\n\t[EnglishEducation] [nvarchar](40),\n\t[SpanishEducation] [nvarchar](40),\n\t[FrenchEducation] [nvarchar](40),\n\t[EnglishOccupation] [nvarchar](100),\n\t[SpanishOccupation] [nvarchar](100),\n\t[FrenchOccupation] [nvarchar](100),\n\t[HouseOwnerFlag] [nchar](1),\n\t[NumberCarsOwned] [tinyint],\n\t[AddressLine1] [nvarchar](120),\n\t[AddressLine2] [nvarchar](120),\n\t[Phone] [nvarchar](20),\n\t[DateFirstPurchase] [date],\n\t[CommuteDistance] [nvarchar](15) )\nWITH ( \n        LOCATION = 'dim_files/DimCustomer.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_customer'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_customer;     ",
@@ -1424,7 +1424,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_date') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_date;\t\n\nCREATE EXTERNAL TABLE bronze.dim_date(    \n\t[DateKey] [int],\n\t[FullDateAlternateKey] [date],\n\t[DayNumberOfWeek] [tinyint] ,\n\t[EnglishDayNameOfWeek] [nvarchar](10),\n\t[SpanishDayNameOfWeek] [nvarchar](10),\n\t[FrenchDayNameOfWeek] [nvarchar](10),     \n\t[DayNumberOfMonth] [tinyint],\n\t[DayNumberOfYear] [smallint],\n\t[WeekNumberOfYear] [tinyint],\n\t[EnglishMonthName] [nvarchar](10),\n\t[SpanishMonthName] [nvarchar](10),\n\t[FrenchMonthName] [nvarchar](10),\n\t[MonthNumberOfYear] [tinyint],\n\t[CalendarQuarter] [tinyint],\n\t[CalendarYear] [smallint],\n\t[CalendarSemester] [tinyint],\n\t[FiscalQuarter] [tinyint],\n\t[FiscalYear] [smallint],\n\t[FiscalSemester] [tinyint])\nWITH ( \n        LOCATION = 'dim_files/DimDate.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_date'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_date;     ",
@@ -1447,7 +1447,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_employee') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_employee;\t\n\nCREATE EXTERNAL TABLE bronze.dim_employee(    \n    [EmployeeKey] [int],\n\t[ParentEmployeeKey] [int],\n\t[EmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[ParentEmployeeNationalIDAlternateKey] [nvarchar](15),\n\t[SalesTerritoryKey] [int],\n\t[FirstName] [nvarchar](50),\n\t[LastName] [nvarchar](50),\n\t[MiddleName] [nvarchar](50),\n\t[NameStyle] [bit],\n\t[Title] [nvarchar](50),\n\t[HireDate] [date],\n\t[BirthDate] [date],\n\t[LoginID] [nvarchar](256),\n\t[EmailAddress] [nvarchar](50),\n\t[Phone] [nvarchar](25),\n\t[MaritalStatus] [nchar](1),\n\t[EmergencyContactName] [nvarchar](50),\n\t[EmergencyContactPhone] [nvarchar](25),\n\t[SalariedFlag] [bit],\n\t[Gender] [nchar](1),\n\t[PayFrequency] [tinyint],\n\t[BaseRate] [money],\n\t[VacationHours] [smallint],\n\t[SickLeaveHours] [smallint],\n\t[CurrentFlag] [bit],\n\t[SalesPersonFlag] [bit],\n\t[DepartmentName] [nvarchar](50),\n\t[StartDate] [date],\n\t[EndDate] [date],\n\t[Status] [nvarchar](50),\n\t[EmployeePhoto] [varbinary](max))\nWITH ( \n        LOCATION = 'dim_files/DimEmployee.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_employee'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_employee;     ",
@@ -1470,7 +1470,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_geography') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_geography;\t\n\nCREATE EXTERNAL TABLE bronze.dim_geography(    \n\t[GeographyKey] [int],\n\t[City] [nvarchar](30),\n\t[StateProvinceCode] [nvarchar](3),\n\t[StateProvinceName] [nvarchar](50),\n\t[CountryRegionCode] [nvarchar](3),\n\t[EnglishCountryRegionName] [nvarchar](50),\n\t[SpanishCountryRegionName] [nvarchar](50),\n\t[FrenchCountryRegionName] [nvarchar](50),\n\t[PostalCode] [nvarchar](15),\n\t[SalesTerritoryKey] [int],\n\t[IpAddressLocator] [nvarchar](15))\nWITH ( \n        LOCATION = 'dim_files/DimGeography.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_geography'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_geography;     ",
@@ -1493,7 +1493,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product_category') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product_category;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product_category(    \n\t[ProductCategoryKey] [int],\n\t[ProductCategoryAlternateKey] [int],\n\t[EnglishProductCategoryName] [nvarchar](50),\n\t[SpanishProductCategoryName] [nvarchar](50),\n\t[FrenchProductCategoryName] [nvarchar](50))\nWITH ( \n        LOCATION = 'dim_files/DimProductCategory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product_category'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product_category;     ",
@@ -1516,7 +1516,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product_subcategory') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product_subcategory;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product_subcategory(    \n\t[ProductSubcategoryKey] [int],\n\t[ProductSubcategoryAlternateKey] [int],\n\t[EnglishProductSubcategoryName] [nvarchar](50),\n\t[SpanishProductSubcategoryName] [nvarchar](50),\n\t[FrenchProductSubcategoryName] [nvarchar](50),\n\t[ProductCategoryKey] [int])\nWITH ( \n        LOCATION = 'dim_files/DimProductSubcategory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product_subcategory'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product_subcategory;     ",
@@ -1539,7 +1539,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product(    \n\t[ProductKey] [int] 1,               \n\t[ProductAlternateKey] [nvarchar](25) 2,\n\t[ProductSubcategoryKey] [int] 3,           \n\t[WeightUnitMeasureCode] [nchar](3) 4,\n\t[SizeUnitMeasureCode] [nchar](3) 5,\n\t[EnglishProductName] [nvarchar](50) 6,     \n\t[SpanishProductName] [nvarchar](50) 7,\n\t[FrenchProductName] [nvarchar](50) 8,\n\t[StandardCost] [money] 9,        \n\t[FinishedGoodsFlag] [bit] 10,\n\t[Color] [nvarchar](15) 11,         \n\t[SafetyStockLevel] [smallint] 12,\n\t[ReorderPoint] [smallint] 13,\n\t[ListPrice] [money] 14,\n\t[Size] [nvarchar](50) 15,\n\t[SizeRange] [nvarchar](50) 16,\n\t[Weight] [float] 17,\n\t[DaysToManufacture] [int] 18,\n\t[ProductLine] [nchar](2) 19,\n\t[DealerPrice] [money] 20,\n\t[Class] [nchar](2) 21,\n\t[Style] [nchar](2) 22,\n\t[ModelName] [nvarchar](50) 23,         \n\t[LargePhoto] [varbinary](max) NULL 24,\n\t[EnglishDescription] [nvarchar](400) 25,\n\t[FrenchDescription] [nvarchar](400) 26,\n\t[ChineseDescription] [nvarchar](400) 27,\n\t[ArabicDescription] [nvarchar](400) 28,\n\t[HebrewDescription] [nvarchar](400) 29,\n\t[ThaiDescription] [nvarchar](400) 30,\n\t[GermanDescription] [nvarchar](400) 31,\n\t[JapaneseDescription] [nvarchar](400) 32,\n\t[TurkishDescription] [nvarchar](400) 33,\n\t[StartDate] [datetime] 34,\n\t[EndDate] [datetime] 35,\n\t[Status] [nvarchar](7) 36))  \nWITH ( \n        LOCATION = 'dim_files/DimProduct.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product;     ",
@@ -1562,7 +1562,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_sales_territory') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_sales_territory;\t\n\nCREATE EXTERNAL TABLE bronze.dim_sales_territory(    \n\t[SalesTerritoryKey] [int],\n\t[SalesTerritoryAlternateKey] [int],\n\t[SalesTerritoryRegion] [nvarchar](50),\n\t[SalesTerritoryCountry] [nvarchar](50),\n\t[SalesTerritoryGroup] [nvarchar](50))\nWITH ( \n        LOCATION = 'dim_files/DimSalesTerritory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = psv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_sales_territory'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_sales_territory;     ",
@@ -1585,7 +1585,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Bronze_Scripts"
+					"name": "2Bronze_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.fact_internet_sales') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.fact_internet_sales;\t\n\nCREATE EXTERNAL TABLE bronze.fact_internet_sales(    \n\t[ProductKey] [int],\n\t[OrderDateKey] [int],\n\t[DueDateKey] [int],\n\t[ShipDateKey] [int],\n\t[CustomerKey] [int],\n\t[PromotionKey] [int],\n\t[CurrencyKey] [int],\n\t[SalesTerritoryKey] [int],\n\t[SalesOrderNumber] [nvarchar](20),\n\t[SalesOrderLineNumber] [tinyint],\n\t[RevisionNumber] [tinyint],\n\t[OrderQuantity] [smallint],\n\t[UnitPrice] [money],\n\t[ExtendedAmount] [money],\n\t[UnitPriceDiscountPct] [float],\n\t[DiscountAmount] [float],\n\t[ProductStandardCost] [money],\n\t[TotalProductCost] [money],\n\t[SalesAmount] [money],\n\t[TaxAmt] [money],\n\t[Freight] [money],\n\t[CarrierTrackingNumber] [nvarchar](25),\n\t[CustomerPONumber] [nvarchar](25),\n\t[OrderDate] [datetime],\n\t[DueDate] [datetime],\n\t[ShipDate] [datetime])\nWITH ( \n        LOCATION = 'fact_files/FactInternetSales.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/fact_internet_sales'\n    );\n\nSELECT TOP 10 * FROM bronze.fact_internet_sales;     ",
@@ -1608,7 +1608,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_customer\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_customer') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_customer;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [CustomerKey], \n  [GeographyKey], \n  CONCAT(firstname, ' ', lastname) as [Customer Name], \n  [BirthDate], \n  CASE WHEN MaritalStatus = 'M' THEN 'Married' WHEN MaritalStatus = 'S' THEN 'Single' END as MaritalStatus, \n  CASE WHEN Gender = 'M' THEN 'Male' WHEN Gender = 'F' THEN 'Female' END AS Gender \nFROM bronze.dim_customer;\n\nEND;\n\nEXEC silver.sp_silver_dim_customer;\nSELECT * FROM silver.dim_customer;\n",
@@ -1631,7 +1631,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_date\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_date') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_date;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_date\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_date',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [DateKey], \n  [FullDateAlternateKey], \n  [EnglishDayNameOfWeek], \n  [EnglishMonthName], \n  [CalendarYear], \n  [MonthNumberOfYear] \nFROM bronze.dim_date;\n\nEND;\n\nEXEC silver.sp_silver_dim_date;\nSELECT * FROM silver.dim_date;\n",
@@ -1654,7 +1654,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_employee\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_employee') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_employee;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_employee\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_employee',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [EmployeeKey], \n  [SalesTerritoryKey], \n  CONCAT(firstname, ' ', lastname) as [Employee Name], \n  [Title], \n  CASE WHEN MaritalStatus = 'M' THEN 'Married' WHEN MaritalStatus = 'S' THEN 'Single' END as MaritalStatus, \n  CASE WHEN Gender = 'M' THEN 'Male' WHEN Gender = 'F' THEN 'Female' END AS Gender, \n  [DepartmentName] \nFROM bronze.dim_employee;\n\nEND;\n\nEXEC silver.sp_silver_dim_employee;\nSELECT * FROM silver.dim_employee;\n",
@@ -1677,7 +1677,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_geography\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_geography') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_geography;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_geography\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_geography',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [GeographyKey], \n  [City], \n  [EnglishCountryRegionName] AS [Country Name], \n  [SalesTerritoryRegion], \n  [SalesTerritoryGroup], \n  [PostalCode], \n  g.[SalesTerritoryKey] \nFROM \n  bronze.dim_geography g \n  JOIN bronze.dim_sales_territory t ON g.SalesTerritoryKey = t.SalesTerritoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_geography;\nSELECT * FROM silver.dim_geography;\n",
@@ -1700,7 +1700,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_product\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\nCREATE EXTERNAL TABLE silver.dim_product(    \n\t[ProductKey] [int],\n  [ProductSubcategoryKey] [int] , \n  [EnglishProductName] [nvarchar](50), \n  [Color] [nvarchar](15),\n  [ModelName] [nvarchar](50), \n  [Status] [nvarchar](7), \n  [StandardCost] [nvarchar](10),\n  [ProductCategoryKey] [nvarchar](10), \n  [EnglishProductCategoryName] [nvarchar](50), \n  [EnglishProductSubcategoryName] [varchar](50))\nWITH ( \n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    );\n\nEND;\n\nEXEC silver.sp_silver_dim_product;\nSELECT * FROM silver.dim_product;\n",
@@ -1718,12 +1718,12 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SP_Silver_FactSales')]",
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_FactInternetSales')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Silver_Scripts"
+					"name": "3Silver_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_fact_internet_sales\nAS\nBEGIN\n    IF OBJECT_ID('silver.fact_internet_sales') IS NOT NULL\n        DROP EXTERNAL TABLE silver.fact_internet_sales;\n\n\n\nCREATE EXTERNAL TABLE silver.fact_internet_sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/fact_internet_sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [ProductKey], \n  [OrderDateKey], \n  [CustomerKey], \n  [SalesTerritoryKey], \n  [SalesOrderNumber], \n  [SalesOrderLineNumber], \n  [OrderQuantity], \n  [ProductStandardCost], \n  [SalesAmount], \n  CAST([OrderDate] AS date) AS OrderDate\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC silver.sp_silver_fact_internet_sales;\nSELECT * FROM silver.fact_internet_sales;\n",
@@ -1766,7 +1766,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "LDW_Scripts"
+					"name": "1LDW_Scripts"
 				},
 				"content": {
 					"query": "CREATE DATABASE sales_ldw;\nGO\n\nUSE sales_ldw;\nGO\n\nALTER DATABASE sales_ldw COLLATE Latin1_General_100_CI_AI_SC_UTF8;\nGO\n\nCREATE SCHEMA bronze\nGO\n\nCREATE SCHEMA silver\nGO\n\nCREATE SCHEMA gold\nGO",
@@ -1789,7 +1789,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "LDW_Scripts"
+					"name": "1LDW_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\nDROP EXTERNAL DATA SOURCE sales_data_src\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sales_data_src')\n    CREATE EXTERNAL DATA SOURCE sales_data_src\n    WITH\n    (    LOCATION = 'https://ap203synapsestorage.blob.core.windows.net/data'\n    );\n\nSELECT * FROM sys.external_data_sources    ",
@@ -1812,7 +1812,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "LDW_Scripts"
+					"name": "1LDW_Scripts"
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\n--PSV with parser version 1.0\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='psv_file_format_pv1')\n  CREATE EXTERNAL FILE FORMAT psv_file_format_pv1 \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = '|'  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '1.0' )   \n      );\n\n--CSV with parser version 1.0\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='csv_file_format_pv1')\n  CREATE EXTERNAL FILE FORMAT csv_file_format_pv1 \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = ','  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '1.0' )   \n      );\n\n--parquet with SnappyCodec compression\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='parquet_file_format')\n  CREATE EXTERNAL FILE FORMAT parquet_file_format  \n  WITH (  \n        FORMAT_TYPE = PARQUET,  \n        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \n       );\n       \nSELECT * FROM sys.external_file_formats      ",
@@ -1824,6 +1824,46 @@
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Gold_Sales')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "4Gold_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_sales\nAS\nBEGIN\n    IF OBJECT_ID('gold.sales') IS NOT NULL\n        DROP EXTERNAL TABLE gold.sales;\n\n\n\nCREATE EXTERNAL TABLE gold.sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  SUM(SalesAmount) as [Total Revenue],\n  SUM(ProductStandardCost) as [Total Cost],\n  SUM(SalesAmount)-SUM(ProductStandardCost) as [Profit],\n  SUM(SalesAmount)-SUM(ProductStandardCost)/SUM(SalesAmount) as [Profit Margin %],\n  COUNT(DISTINCT(CustomerKey)) as [Total Customers],\n  count(*) as [Total Transaction]\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC gold.sp_gold_sales;\nSELECT * FROM gold.sales;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Gold_Product')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "4Gold_Scripts"
+				},
+				"content": {
+					"metadata": {
+						"language": "sql"
+					}
 				},
 				"type": "SqlQuery"
 			},
