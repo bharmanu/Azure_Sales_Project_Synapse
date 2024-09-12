@@ -1,0 +1,20 @@
+{
+	"name": "SP_Gold_Customer",
+	"properties": {
+		"folder": {
+			"name": "4Gold_Scripts"
+		},
+		"content": {
+			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_customer\nAS\nBEGIN\n    IF OBJECT_ID('gold.customer') IS NOT NULL\n        DROP EXTERNAL TABLE gold.customer;\n\n\n\nCREATE EXTERNAL TABLE gold.customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  g.[Country Name], \n  g.[SalesTerritoryRegion] as [Region], \n  g.[SalesTerritoryGroup] as [Group],\n  YEAR(CAST(s.[OrderDate] AS date)) AS [Order Year], \n  SUM(s.[OrderQuantity]) as [Total Order], \n  SUM(s.[SalesAmount]) as [Total Revenue]\nFROM \n  silver.fact_internet_sales s\nJOIN  silver.dim_customer c ON c.[CustomerKey] = s.[CustomerKey]\nJOIN  silver.dim_geography g ON g.[GeographyKey] = c.[GeographyKey]\nGROUP BY g.[Country Name], g.[SalesTerritoryRegion], g.[SalesTerritoryGroup],YEAR(CAST(s.[OrderDate] AS date));\n\nEND;\n\nEXEC gold.sp_gold_customer;\nSELECT * FROM gold.customer;\n\n\n\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sales_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
