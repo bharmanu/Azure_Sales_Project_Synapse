@@ -124,7 +124,8 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2024-09-12T00:25:17Z"
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/SourceDataset_l34')]",
@@ -201,7 +202,8 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2024-09-11T17:28:30Z"
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/ds_processed_fact')]",
@@ -366,7 +368,8 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2024-09-10T19:40:40Z"
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]"
@@ -1282,7 +1285,6 @@
 						"     ),",
 						"     allowSchemaDrift: false,",
 						"     validateSchema: false,",
-						"     limit: 100,",
 						"     ignoreNoFilesFound: false) ~> DimProduct",
 						"source(output(",
 						"          ProductSubcategoryKey as string,",
@@ -1294,7 +1296,6 @@
 						"     ),",
 						"     allowSchemaDrift: false,",
 						"     validateSchema: false,",
-						"     limit: 100,",
 						"     ignoreNoFilesFound: false) ~> DimProductSubcategory",
 						"source(output(",
 						"          ProductCategoryKey as string,",
@@ -1305,7 +1306,6 @@
 						"     ),",
 						"     allowSchemaDrift: false,",
 						"     validateSchema: false,",
-						"     limit: 100,",
 						"     ignoreNoFilesFound: false) ~> DimCategory",
 						"DimProduct select(mapColumn(",
 						"          ProductKey,",
