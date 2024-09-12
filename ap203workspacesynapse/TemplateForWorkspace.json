@@ -1695,7 +1695,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimProduct_Incomplete')]",
+			"name": "[concat(parameters('workspaceName'), '/SP_Silver_DimProduct')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -1861,9 +1861,15 @@
 					"name": "4Gold_Scripts"
 				},
 				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_product\nAS\nBEGIN\n    IF OBJECT_ID('gold.product') IS NOT NULL\n        DROP EXTERNAL TABLE gold.product;\n\n\n\nCREATE EXTERNAL TABLE gold.product\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/product',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT \n    s.[ProductKey],\n    SUM(s.[OrderQuantity]) as [Total Orders],\n    p.[EnglishProductName] as [ProductName],\n    p.[EnglishProductCategoryName] as [CategoryName],\n    p.[EnglishProductSubcategoryName] as [SubcategoryName]\nFROM silver.fact_internet_sales s\nLEFT JOIN silver.dim_product p\nON s.[ProductKey] = p.[ProductKey]\nGROUP BY s.[ProductKey],p.[EnglishProductName],p.[EnglishProductCategoryName],p.[EnglishProductSubcategoryName];\n\nEND;\n\nEXEC gold.sp_gold_product;\nSELECT * FROM gold.product;\n",
 					"metadata": {
 						"language": "sql"
-					}
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
 				},
 				"type": "SqlQuery"
 			},
