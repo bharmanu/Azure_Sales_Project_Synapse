@@ -372,7 +372,8 @@
 				"lastPublishTime": "2024-09-10T19:40:40Z"
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]"
+				"[concat(variables('workspaceId'), '/dataflows/dimProduct')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -1772,7 +1773,7 @@
 					"name": "3Silver_Scripts"
 				},
 				"content": {
-					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_product\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\nCREATE EXTERNAL TABLE silver.dim_product(    \n\t[ProductKey] [int],\n  [ProductSubcategoryKey] [int] , \n  [EnglishProductName] [nvarchar](50), \n  [Color] [nvarchar](15),\n  [ModelName] [nvarchar](50), \n  [Status] [nvarchar](7), \n  [StandardCost] [nvarchar](10),\n  [ProductCategoryKey] [nvarchar](10), \n  [EnglishProductCategoryName] [nvarchar](50), \n  [EnglishProductSubcategoryName] [varchar](50))\nWITH ( \n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    );\n\nEND;\n\nEXEC silver.sp_silver_dim_product;\nSELECT * FROM silver.dim_product;\n",
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_product\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_product') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_product;\n\n\nCREATE EXTERNAL TABLE silver.dim_product(    \n\t[ProductKey] [int],\n  [ProductSubcategoryKey] [int] , \n  [EnglishProductName] [nvarchar](50), \n  [Color] [nvarchar](15),\n  [ModelName] [nvarchar](50), \n  [Status] [nvarchar](400), \n  [StandardCost] [nvarchar](10),\n  [ProductCategoryKey] [nvarchar](10), \n  [EnglishProductCategoryName] [nvarchar](50), \n  [EnglishProductSubcategoryName] [varchar](50))\nWITH ( \n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_product',\n        FILE_FORMAT = parquet_file_format\n    );\n\nEND;\n\nEXEC silver.sp_silver_dim_product;\nSELECT * FROM silver.dim_product;\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -1885,6 +1886,29 @@
 				},
 				"content": {
 					"query": "USE sales_ldw;\nGO\n\n--PSV with parser version 1.0\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='psv_file_format_pv1')\n  CREATE EXTERNAL FILE FORMAT psv_file_format_pv1 \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = '|'  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '1.0' )   \n      );\n\n--CSV with parser version 1.0\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='csv_file_format_pv1')\n  CREATE EXTERNAL FILE FORMAT csv_file_format_pv1 \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = ','  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '1.0' )   \n      );\n\n--parquet with SnappyCodec compression\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='parquet_file_format')\n  CREATE EXTERNAL FILE FORMAT parquet_file_format  \n  WITH (  \n        FORMAT_TYPE = PARQUET,  \n        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \n       );\n       \nSELECT * FROM sys.external_file_formats      ",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sales_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP_Gold_Employee')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "4Gold_Scripts"
+				},
+				"content": {
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_employee\nAS\nBEGIN\n    IF OBJECT_ID('gold.employee') IS NOT NULL\n        DROP EXTERNAL TABLE gold.employee;\n\n\n\nCREATE EXTERNAL TABLE gold.employee\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/employee',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  e.[EmployeeKey], \n  e.[SalesTerritoryKey], \n  e.[Title], \n  e.[MaritalStatus], \n  e.[Gender], \n  e.[DepartmentName],\n  g.[Country Name], \n  g.[SalesTerritoryRegion] as [Region], \n  g.[SalesTerritoryGroup] as [Group] \nFROM \n  silver.dim_employee e\nLEFT JOIN  silver.dim_geography g ON g.[SalesTerritoryKey] = e.[SalesTerritoryKey];\n\nEND;\n\nEXEC gold.sp_gold_employee;\nSELECT * FROM gold.employee;\n\n\n\n\n\n\n\n\n",
 					"metadata": {
 						"language": "sql"
 					},
