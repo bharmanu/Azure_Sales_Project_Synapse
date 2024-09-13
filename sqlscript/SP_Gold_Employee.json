@@ -1,0 +1,20 @@
+{
+	"name": "SP_Gold_Employee",
+	"properties": {
+		"folder": {
+			"name": "4Gold_Scripts"
+		},
+		"content": {
+			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_employee\nAS\nBEGIN\n    IF OBJECT_ID('gold.employee') IS NOT NULL\n        DROP EXTERNAL TABLE gold.employee;\n\n\n\nCREATE EXTERNAL TABLE gold.employee\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/employee',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  e.[EmployeeKey], \n  e.[SalesTerritoryKey], \n  e.[Title], \n  e.[MaritalStatus], \n  e.[Gender], \n  e.[DepartmentName],\n  g.[Country Name], \n  g.[SalesTerritoryRegion] as [Region], \n  g.[SalesTerritoryGroup] as [Group] \nFROM \n  silver.dim_employee e\nLEFT JOIN  silver.dim_geography g ON g.[SalesTerritoryKey] = e.[SalesTerritoryKey];\n\nEND;\n\nEXEC gold.sp_gold_employee;\nSELECT * FROM gold.employee;\n\n\n\n\n\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sales_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
