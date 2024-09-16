@@ -1639,7 +1639,7 @@
 					"name": "4Gold_Scripts"
 				},
 				"content": {
-					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_customer\nAS\nBEGIN\n    IF OBJECT_ID('gold.customer') IS NOT NULL\n        DROP EXTERNAL TABLE gold.customer;\n\n\n\nCREATE EXTERNAL TABLE gold.customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  g.[Country Name], \n  g.[SalesTerritoryRegion] as [Region], \n  g.[SalesTerritoryGroup] as [Group],\n  YEAR(CAST(s.[OrderDate] AS date)) AS [Order Year], \n  SUM(s.[OrderQuantity]) as [Total Order], \n  SUM(s.[SalesAmount]) as [Total Revenue]\nFROM \n  silver.fact_internet_sales s\nJOIN  silver.dim_customer c ON c.[CustomerKey] = s.[CustomerKey]\nJOIN  silver.dim_geography g ON g.[GeographyKey] = c.[GeographyKey]\nGROUP BY g.[Country Name], g.[SalesTerritoryRegion], g.[SalesTerritoryGroup],YEAR(CAST(s.[OrderDate] AS date));\n\nEND;\n\nEXEC gold.sp_gold_customer;\nSELECT * FROM gold.customer;\n\n\n\n\n\n\n",
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_customer\nAS\nBEGIN\n    IF OBJECT_ID('gold.customer') IS NOT NULL\n        DROP EXTERNAL TABLE gold.customer;\n\n\n\nCREATE EXTERNAL TABLE gold.customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  g.[Country Name], \n  g.[Region], \n  g.[Group],\n  YEAR(CAST(s.[OrderDate] AS date)) AS [Order Year], \n  SUM(s.[OrderQuantity]) as [Total Order], \n  SUM(s.[SalesAmount]) as [Total Revenue]\nFROM \n  silver.fact_internet_sales s\nJOIN  silver.dim_customer c ON c.[CustomerKey] = s.[CustomerKey]\nJOIN  silver.dim_geography g ON g.[GeographyKey] = c.[GeographyKey]\nGROUP BY g.[Country Name], g.[Region], g.[Group],YEAR(CAST(s.[OrderDate] AS date));\n\nEND;\n\nEXEC gold.sp_gold_customer;\nSELECT * FROM gold.customer;\n\n\n\n\n\n\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -1708,7 +1708,7 @@
 					"name": "4Gold_Scripts"
 				},
 				"content": {
-					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_sales\nAS\nBEGIN\n    IF OBJECT_ID('gold.sales') IS NOT NULL\n        DROP EXTERNAL TABLE gold.sales;\n\n\n\nCREATE EXTERNAL TABLE gold.sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  SUM(SalesAmount) as [Total Revenue],\n  SUM(ProductStandardCost) as [Total Cost],\n  SUM(SalesAmount)-SUM(ProductStandardCost) as [Profit],\n  SUM(SalesAmount)-SUM(ProductStandardCost)/SUM(SalesAmount) as [Profit Margin %],\n  COUNT(DISTINCT(CustomerKey)) as [Total Customers],\n  count(*) as [Total Transaction]\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC gold.sp_gold_sales;\nSELECT * FROM gold.sales;\n",
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE gold.sp_gold_sales\nAS\nBEGIN\n    IF OBJECT_ID('gold.sales') IS NOT NULL\n        DROP EXTERNAL TABLE gold.sales;\n\n\n\nCREATE EXTERNAL TABLE gold.sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'gold/sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  SUM(SalesAmount) as [Total Revenue],\n  SUM(ProductStandardCost) as [Total Cost],\n  SUM(SalesAmount)-SUM(ProductStandardCost) as [Profit],\n  SUM(SalesAmount)-SUM(ProductStandardCost)/SUM(SalesAmount) as [Profit Margin %],\n  COUNT(DISTINCT(CustomerKey)) as [Total Customers],\n  COUNT(*) as [Total Transaction]\nFROM \n  silver.fact_internet_sales;\n\nEND;\n\nEXEC gold.sp_gold_sales;\nSELECT * FROM gold.sales;\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -1800,7 +1800,7 @@
 					"name": "3Silver_Scripts"
 				},
 				"content": {
-					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_geography\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_geography') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_geography;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_geography\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_geography',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [GeographyKey], \n  [City], \n  [EnglishCountryRegionName] AS [Country Name], \n  [SalesTerritoryRegion], \n  [SalesTerritoryGroup], \n  [PostalCode], \n  g.[SalesTerritoryKey] \nFROM \n  bronze.dim_geography g \n  JOIN bronze.dim_sales_territory t ON g.SalesTerritoryKey = t.SalesTerritoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_geography;\nSELECT * FROM silver.dim_geography;\n",
+					"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_geography\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_geography') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_geography;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_geography\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_geography',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [GeographyKey], \n  [City], \n  [EnglishCountryRegionName] AS [Country Name], \n  [SalesTerritoryRegion] AS [Region], \n  [SalesTerritoryGroup] AS [Group], \n  [PostalCode], \n  g.[SalesTerritoryKey] \nFROM \n  bronze.dim_geography g \n  JOIN bronze.dim_sales_territory t ON g.SalesTerritoryKey = t.SalesTerritoryKey;\n\nEND;\n\nEXEC silver.sp_silver_dim_geography;\nSELECT * FROM silver.dim_geography;\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -1970,7 +1970,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "42e8d014-af03-41e9-84a8-32b955319254"
+						"spark.autotune.trackingId": "e6be7ef8-d00a-4af8-99af-d2926a86077a"
 					}
 				},
 				"metadata": {
@@ -1995,7 +1995,8 @@
 						"sparkVersion": "3.4",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -2010,9 +2011,7 @@
 							}
 						},
 						"source": [
-							"### Purpose of the notebook\n",
-							"1. Create the aggregated table in Spark Pool\n",
-							"2. Access the data from Serverless SQL Pool "
+							"### Notebook to create aggregated gold tables"
 						]
 					},
 					{
@@ -2034,27 +2033,7 @@
 							"gold_folder_path = 'abfss://data@ap203synapsestorage.dfs.core.windows.net/gold'"
 						],
 						"outputs": [],
-						"execution_count": 19
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"source_hidden": false,
-								"outputs_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"#Set the spark config\n",
-							"spark.conf.set(\"spark.sql.sources.partitionColumnTypeInference.enabled\", \"false\")"
-						],
-						"outputs": [],
-						"execution_count": 20
+						"execution_count": 37
 					},
 					{
 						"cell_type": "code",
@@ -2076,13 +2055,13 @@
 						"source": [
 							"%%sql\n",
 							"\n",
-							"-- Create database to which we are going to write the data\n",
+							"-- Create database\n",
 							"\n",
 							"CREATE DATABASE IF NOT EXISTS sales_ldw_spark\n",
 							"LOCATION 'abfss://data@ap203synapsestorage.dfs.core.windows.net/gold';"
 						],
 						"outputs": [],
-						"execution_count": 21
+						"execution_count": 38
 					},
 					{
 						"cell_type": "code",
@@ -2100,10 +2079,13 @@
 						"source": [
 							"# Read the silver data to be processed. \n",
 							"sales_df = spark.read.parquet(f\"{silver_folder_path}/fact_internet_sales\") \n",
-							"sales_df = spark.read.parquet(f\"{silver_folder_path}/fact_internet_sales\") "
+							"customer_df = spark.read.parquet(f\"{silver_folder_path}/dim_customer\") \n",
+							"employee_df = spark.read.parquet(f\"{silver_folder_path}/dim_employee\") \n",
+							"geography_df = spark.read.parquet(f\"{silver_folder_path}/dim_geography\") \n",
+							"product_df = spark.read.parquet(f\"{silver_folder_path}/dim_product\") "
 						],
 						"outputs": [],
-						"execution_count": 22
+						"execution_count": 39
 					},
 					{
 						"cell_type": "code",
@@ -2124,14 +2106,101 @@
 							"\n",
 							"sales_agg_df = sales_df \\\n",
 							"                .groupBy(\"CustomerKey\",\"Year\",\"Month\") \\\n",
-							"                .agg(count(lit(1)).alias(\"customer_count\"), \\\n",
-							"                round(sum(\"SalesAmount\"), 2).alias(\"Revenue\"), \\\n",
+							"                .agg(round(sum(\"SalesAmount\"), 2).alias(\"Revenue\"), \\\n",
 							"                round(sum(\"ProductStandardCost\"), 2).alias(\"Cost\"), \\\n",
-							"                sum(\"SalesAmount\")-sum(\"ProductStandardCost\").alias(\"Profit\"), \\\n",
-							"                sum(\"SalesAmount\")-sum(\"ProductStandardCost\")/sum(\"SalesAmount\").alias(\"ProfitMargin\"))"
+							"                (sum(\"SalesAmount\")-sum(\"ProductStandardCost\")).alias(\"Profit\"), \\\n",
+							"                (sum(\"SalesAmount\")-sum(\"ProductStandardCost\")/sum(\"SalesAmount\")).alias(\"ProfitMargin\"))"
 						],
 						"outputs": [],
-						"execution_count": 35
+						"execution_count": 40
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"customer_region_df = customer_df.join(geography_df,geography_df[\"GeographyKey\"] == customer_df[\"GeographyKey\"]) \\\n",
+							"                 .select(\"CustomerKey\",\"Country Name\",\"Region\",\"Group\")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 42
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"customer_agg_df = sales_df.join(customer_region_df,sales_df[\"CustomerKey\"] == customer_region_df[\"CustomerKey\"]) \\\n",
+							"               .groupBy(sales_df[\"CustomerKey\"],\"Country Name\",\"Region\",\"Group\",\"Year\",\"Month\") \\\n",
+							"               .agg(round(sum(\"OrderQuantity\"), 2).alias(\"TotalOrder\"), \\\n",
+							"                round(sum(\"SalesAmount\"), 2).alias(\"TotalRevenue\"))"
+						],
+						"outputs": [],
+						"execution_count": 43
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"employee_agg_df = employee_df.join(geography_df,geography_df[\"SalesTerritoryKey\"] == employee_df[\"SalesTerritoryKey\"]) \\\n",
+							"                 .select(\"EmployeeKey\",employee_df[\"SalesTerritoryKey\"],\"Title\",\"MaritalStatus\",\"Gender\",\"DepartmentName\",\"Country Name\",\"Region\",\"Group\")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 45
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"product_agg_df=product_df.join(sales_df,sales_df[\"ProductKey\"] == product_df[\"ProductKey\"]) \\\n",
+							"            .withColumnRenamed(\"EnglishProductName\",\"ProductName\") \\\n",
+							"            .withColumnRenamed(\"EnglishProductCategoryName\",\"CategoryName\") \\\n",
+							"            .withColumnRenamed(\"EnglishProductSubcategoryName\",\"SubcategoryName\") \\\n",
+							"            .groupBy(product_df[\"ProductKey\"],\"ProductName\",\"CategoryName\",\"SubcategoryName\",\"Year\",\"Month\") \\\n",
+							"            .agg(round(sum(\"OrderQuantity\"), 2).alias(\"TotalOrder\"))"
+						],
+						"outputs": [],
+						"execution_count": 47
 					},
 					{
 						"cell_type": "code",
@@ -2148,11 +2217,13 @@
 						},
 						"source": [
 							"# Write the aggregated data to the gold table for consumption\n",
-							"\n",
-							"sales_agg_df.write.mode(\"overwrite\").partitionBy(\"Year\", \"Month\").format(\"parquet\").saveAsTable(\"sales_ldw_spark.sales_agg\")"
+							"sales_agg_df.write.mode(\"overwrite\").partitionBy(\"Year\", \"Month\").format(\"parquet\").saveAsTable(\"sales_ldw_spark.sales_agg\")\n",
+							"customer_agg_df.write.mode(\"overwrite\").partitionBy(\"Year\", \"Month\").format(\"parquet\").saveAsTable(\"sales_ldw_spark.customer_agg\")\n",
+							"employee_agg_df.write.mode(\"overwrite\").format(\"parquet\").saveAsTable(\"sales_ldw_spark.employee_agg\")\n",
+							"product_agg_df.write.mode(\"overwrite\").partitionBy(\"Year\", \"Month\").format(\"parquet\").saveAsTable(\"sales_ldw_spark.product_agg\")"
 						],
 						"outputs": [],
-						"execution_count": 36
+						"execution_count": 49
 					}
 				]
 			},
@@ -2182,6 +2253,43 @@
 			},
 			"dependsOn": [],
 			"location": "eastus2"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pl_Load_Gold_Tables')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Nb_Gold_Sales_Result",
+						"type": "SynapseNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "Nb_Gold_Sales_Result",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"conf": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/notebooks/Nb_Gold_Sales_Result')]"
+			]
 		}
 	]
 }
