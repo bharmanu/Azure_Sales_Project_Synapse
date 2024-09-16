@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "23d6c923-cb85-4cfd-bab4-46cb7585f109"
+				"spark.autotune.trackingId": "392b0dcc-2956-4c3a-8393-d5a587c8161e"
 			}
 		},
 		"metadata": {
@@ -171,24 +171,6 @@
 					}
 				},
 				"source": [
-					"sales_agg_df.show(10)"
-				],
-				"execution_count": 41
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
 					"customer_region_df = customer_df.join(geography_df,geography_df[\"GeographyKey\"] == customer_df[\"GeographyKey\"]) \\\n",
 					"                 .select(\"CustomerKey\",\"Country Name\",\"Region\",\"Group\")\n",
 					""
@@ -230,47 +212,11 @@
 					}
 				},
 				"source": [
-					"customer_agg_df.show(10)"
-				],
-				"execution_count": 44
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
 					"employee_agg_df = employee_df.join(geography_df,geography_df[\"SalesTerritoryKey\"] == employee_df[\"SalesTerritoryKey\"]) \\\n",
 					"                 .select(\"EmployeeKey\",employee_df[\"SalesTerritoryKey\"],\"Title\",\"MaritalStatus\",\"Gender\",\"DepartmentName\",\"Country Name\",\"Region\",\"Group\")\n",
 					""
 				],
 				"execution_count": 45
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"employee_agg_df.show(10)"
-				],
-				"execution_count": 46
 			},
 			{
 				"cell_type": "code",
@@ -294,24 +240,6 @@
 					"            .agg(round(sum(\"OrderQuantity\"), 2).alias(\"TotalOrder\"))"
 				],
 				"execution_count": 47
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"product_agg_df.show(10)"
-				],
-				"execution_count": 48
 			},
 			{
 				"cell_type": "code",

@@ -1,0 +1,28 @@
+{
+	"name": "Pl_Load_Gold_Tables",
+	"properties": {
+		"activities": [
+			{
+				"name": "Nb_Gold_Sales_Result",
+				"type": "SynapseNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebook": {
+						"referenceName": "Nb_Gold_Sales_Result",
+						"type": "NotebookReference"
+					},
+					"snapshot": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}
