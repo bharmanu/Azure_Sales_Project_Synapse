@@ -2,7 +2,7 @@
 	"name": "SP_Silver_DimCustomer",
 	"properties": {
 		"folder": {
-			"name": "3Silver_Scripts"
+			"name": "Sales_project_Scripts/3Silver_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_customer\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_customer') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_customer;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_customer\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_customer',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [CustomerKey], \n  [GeographyKey], \n  CONCAT(firstname, ' ', lastname) as [Customer Name], \n  [BirthDate], \n  CASE WHEN MaritalStatus = 'M' THEN 'Married' WHEN MaritalStatus = 'S' THEN 'Single' END as MaritalStatus, \n  CASE WHEN Gender = 'M' THEN 'Male' WHEN Gender = 'F' THEN 'Female' END AS Gender \nFROM bronze.dim_customer;\n\nEND;\n\nEXEC silver.sp_silver_dim_customer;\nSELECT * FROM silver.dim_customer;\n",

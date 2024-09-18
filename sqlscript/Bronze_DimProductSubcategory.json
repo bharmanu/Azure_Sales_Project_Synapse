@@ -2,7 +2,7 @@
 	"name": "Bronze_DimProductSubcategory",
 	"properties": {
 		"folder": {
-			"name": "2Bronze_Scripts"
+			"name": "Sales_project_Scripts/2Bronze_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nIF OBJECT_ID('bronze.dim_product_subcategory') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.dim_product_subcategory;\t\n\nCREATE EXTERNAL TABLE bronze.dim_product_subcategory(    \n\t[ProductSubcategoryKey] [int],\n\t[ProductSubcategoryAlternateKey] [int],\n\t[EnglishProductSubcategoryName] [nvarchar](50),\n\t[SpanishProductSubcategoryName] [nvarchar](50),\n\t[FrenchProductSubcategoryName] [nvarchar](50),\n\t[ProductCategoryKey] [int])\nWITH ( \n        LOCATION = 'dim_files/DimProductSubcategory.csv',  \n        DATA_SOURCE = sales_data_src,  \n        FILE_FORMAT = csv_file_format_pv1,\n        REJECT_VALUE = 10,\n        REJECTED_ROW_LOCATION = 'rejections/dim_product_subcategory'\n    );\n\nSELECT TOP 10 * FROM bronze.dim_product_subcategory;     ",

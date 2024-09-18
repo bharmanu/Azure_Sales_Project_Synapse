@@ -1,6 +1,9 @@
 {
 	"name": "Script1_Analysis_Dimfiles_Queries",
 	"properties": {
+		"folder": {
+			"name": "Sales_project_Scripts/1LDW_Scripts"
+		},
 		"content": {
 			"query": "CREATE DATABASE sales_db;\n--DROP DATABASE sales_db;\n\nUSE sales_db;\nALTER DATABASE sales_db COLLATE Latin1_General_100_CI_AI_SC_UTF8;\n\n--DROP EXTERNAL DATA SOURCE sales_data_dimension\nCREATE EXTERNAL DATA SOURCE sales_data_dimension\nWITH(\n    LOCATION = 'https://synapsestoragemanu.dfs.core.windows.net/data/dim_files'\n)\n\n\n--DimDate.csv\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimDate.csv',\n        DATA_SOURCE = 'sales_data_dimension',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '1.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = '|',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        DateKey INT 1,\n        FullDateAlternateKey DATE 2, \n        EnglishDayNameOfWeek VARCHAR(10) 4, \n        EnglishMonthName VARCHAR(10) 10, \n        CalendarYear SMALLINT 15, \n        MonthNumberOfYear TINYINT 13\n    )\n    AS [result];\n\n\n--DimCustomer.csv\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimCustomer.csv',\n        DATA_SOURCE = 'sales_data_dimension',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '1.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = '|',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        CustomerKey INT 1,\n        GeographyKey INT 2,\n        firstname VARCHAR(50) 5,\n        lastname VARCHAR(50) 7,\n        BirthDate DATE 9,\n        MaritalStatus CHAR(1) 10,\n        Gender CHAR(1) 12\n    )\n    AS [result];",
 			"metadata": {

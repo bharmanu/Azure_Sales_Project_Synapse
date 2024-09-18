@@ -2,7 +2,7 @@
 	"name": "SP_Silver_DimDate",
 	"properties": {
 		"folder": {
-			"name": "3Silver_Scripts"
+			"name": "Sales_project_Scripts/3Silver_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_dim_date\nAS\nBEGIN\n    IF OBJECT_ID('silver.dim_date') IS NOT NULL\n        DROP EXTERNAL TABLE silver.dim_date;\n\n\n\nCREATE EXTERNAL TABLE silver.dim_date\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/dim_date',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [DateKey], \n  [FullDateAlternateKey], \n  [EnglishDayNameOfWeek], \n  [EnglishMonthName], \n  [CalendarYear], \n  [MonthNumberOfYear] \nFROM bronze.dim_date;\n\nEND;\n\nEXEC silver.sp_silver_dim_date;\nSELECT * FROM silver.dim_date;\n",

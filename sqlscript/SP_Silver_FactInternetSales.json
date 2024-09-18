@@ -2,7 +2,7 @@
 	"name": "SP_Silver_FactInternetSales",
 	"properties": {
 		"folder": {
-			"name": "3Silver_Scripts"
+			"name": "Sales_project_Scripts/3Silver_Scripts"
 		},
 		"content": {
 			"query": "USE sales_ldw;\nGO\n\nCREATE OR ALTER PROCEDURE silver.sp_silver_fact_internet_sales\nAS\nBEGIN\n    IF OBJECT_ID('silver.fact_internet_sales') IS NOT NULL\n        DROP EXTERNAL TABLE silver.fact_internet_sales;\n\n\n\nCREATE EXTERNAL TABLE silver.fact_internet_sales\n    WITH\n    (\n        DATA_SOURCE = sales_data_src,\n        LOCATION = 'silver/fact_internet_sales',\n        FILE_FORMAT = parquet_file_format\n    )\nAS\nSELECT\n  [ProductKey], \n  [OrderDateKey], \n  [CustomerKey], \n  [SalesTerritoryKey], \n  [SalesOrderNumber], \n  [SalesOrderLineNumber], \n  [OrderQuantity], \n  [ProductStandardCost], \n  [SalesAmount], \n  CAST([OrderDate] AS date) AS OrderDate,\n  YEAR([OrderDate]) AS Year,\n  Month([OrderDate]) AS Month\nFROM \n  bronze.fact_internet_sales;\n\nEND;\n\nEXEC silver.sp_silver_fact_internet_sales;\nSELECT * FROM silver.fact_internet_sales;\n",
