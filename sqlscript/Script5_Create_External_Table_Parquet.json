@@ -1,0 +1,20 @@
+{
+	"name": "Script5_Create_External_Table_Parquet",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "USE stock_prices_ldw\nGO\n\nIF OBJECT_ID('bronze.stock_prices_parquet') IS NOT NULL\n    DROP EXTERNAL TABLE bronze.stock_prices_parquet;\n\nCREATE EXTERNAL TABLE bronze.stock_prices_parquet\n    (   symbol CHAR(5),\n        date DATE,\n        [open] FLOAT,\n        high FLOAT,\n        low  FLOAT,\n        [close] FLOAT,\n        volume BIGINT )  \n    WITH (\n            LOCATION = 'raw_data/parquet/**',  \n            DATA_SOURCE = stock_prices_src,  \n            FILE_FORMAT = parquet_file_format,\n            REJECT_VALUE = 10,\n            REJECTED_ROW_LOCATION = 'rejections/stock_prices_parquet'\n    );\n\nSELECT * FROM bronze.stock_prices_parquet;    ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "stock_prices_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

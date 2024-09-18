@@ -1,0 +1,20 @@
+{
+	"name": "Script3_Create_External_File_Format",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "USE stock_prices_ldw\nGO\n\n--csv\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='csv_file_format')\n  CREATE EXTERNAL FILE FORMAT csv_file_format  \n  WITH (  \n      FORMAT_TYPE = DELIMITEDTEXT,\n      FORMAT_OPTIONS (  \n        FIELD_TERMINATOR = ','  \n      , STRING_DELIMITER = '\"'\n      , First_Row = 2\n      , USE_TYPE_DEFAULT = FALSE \n      , Encoding = 'UTF8'\n      , PARSER_VERSION = '2.0')   \n      );\n  \n--parquet with SnappyCodec compression\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='parquet_file_format')\n  CREATE EXTERNAL FILE FORMAT parquet_file_format  \n  WITH (  \n        FORMAT_TYPE = PARQUET,  \n        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \n       );\n\n--Delta with SnappyCodec compression \nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name ='delta_file_format')\n  CREATE EXTERNAL FILE FORMAT delta_file_format  \n  WITH (  \n        FORMAT_TYPE = DELTA,  \n        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \n       );\n\n--Check external file format\n--SELECT * FROM sys.external_file_formats\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "stock_prices_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "Script7_Create_View_Json",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "USE stock_prices_ldw\nGO\n\nDROP VIEW IF EXISTS bronze.vw_rate_code\nGO\n\nCREATE VIEW bronze.vw_stock_prices\nAS\nSELECT \nsymbol,stock_date,open_amt,high_amt,close_amt,volume\nFROM OPENROWSET(\n      BULK 'raw_data/json/Stock_Prices.json/**',\n      DATA_SOURCE = 'stock_prices_src',\n      FORMAT = 'CSV',\n      FIELDTERMINATOR = '0x0b',\n      FIELDQUOTE = '0x0b',\n      ROWTERMINATOR = '0x0b'\n)\nWITH\n(\n      jsonDoc NVARCHAR(MAX)\n) AS payment_type\nCROSS APPLY OPENJSON(jsonDoc)\nWITH(\n        symbol VARCHAR(5),\n        stock_date DATE '$.date',\n        open_amt DECIMAL(18,2) '$.open',\n        high_amt DECIMAL(18,2) '$.high',\n        low_amt  DECIMAL(18,2) '$.low',\n        close_amt DECIMAL(18,2) '$.close',\n        volume INT\n)\nGO\n\nSELECT * FROM bronze.vw_stock_prices\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "stock_prices_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

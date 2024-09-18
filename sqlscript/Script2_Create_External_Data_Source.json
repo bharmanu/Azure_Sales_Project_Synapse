@@ -1,0 +1,20 @@
+{
+	"name": "Script2_Create_External_Data_Source",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "USE stock_prices_ldw\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'stock_prices_src')\n    CREATE EXTERNAL DATA SOURCE stock_prices_src\n    WITH\n    (    LOCATION = 'https://synapsestoragemanu.dfs.core.windows.net/project7-data'\n    );\n\n --SELECT * FROM sys.external_data_sources   ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "stock_prices_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

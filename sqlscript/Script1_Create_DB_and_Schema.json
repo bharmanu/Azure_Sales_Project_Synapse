@@ -1,0 +1,20 @@
+{
+	"name": "Script1_Create_DB_and_Schema",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "CREATE DATABASE stock_prices_ldw\nGO\n\nALTER DATABASE stock_prices_ldw COLLATE Latin1_General_100_BIN2_UTF8\nGO\n\nUSE stock_prices_ldw\nGO\n\nCREATE SCHEMA bronze\nGO\n\nCREATE SCHEMA silver\nGO\n\nCREATE SCHEMA gold\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "stock_prices_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

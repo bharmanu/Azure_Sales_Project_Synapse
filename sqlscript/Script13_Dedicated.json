@@ -1,0 +1,20 @@
+{
+	"name": "Script13_Dedicated",
+	"properties": {
+		"folder": {
+			"name": "Taxi_Data_Table_Scripts"
+		},
+		"content": {
+			"query": "COPY INTO dwh.trip_data_green_agg_copy\nFROM 'https://synapsedataset.dfs.core.windows.net/taxi-data/gold/trip_data_green_agg'\nWITH\n(\n\tFILE_TYPE = 'PARQUET'\n\t,MAXERRORS = 0\n\t,COMPRESSION = 'snappy'\n\t,AUTO_CREATE_TABLE = 'ON'\n)\nGO\n\nCREATE TABLE dbo.DimCustomer\n(\n    CustomerKey INT IDENTITY NOT NULL,\n    CustomerAlternateKey NVARCHAR(15) NULL,\n    CustomerName NVARCHAR(80) NOT NULL,\n    EmailAddress NVARCHAR(50) NULL,\n    Phone NVARCHAR(25) NULL,\n    StreetAddress NVARCHAR(100),\n    City NVARCHAR(20),\n    PostalCode NVARCHAR(10),\n    CountryRegion NVARCHAR(20)\n)\nWITH\n(\n    DISTRIBUTION = REPLICATE,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE dbo.FactSales\n(\n    OrderDateKey INT NOT NULL,\n    CustomerKey INT NOT NULL,\n    ProductKey INT NOT NULL,\n    StoreKey INT NOT NULL,\n    OrderNumber NVARCHAR(10) NOT NULL,\n    OrderLineItem INT NOT NULL,\n    OrderQuantity SMALLINT NOT NULL,\n    UnitPrice DECIMAL NOT NULL,\n    Discount DECIMAL NOT NULL,\n    Tax DECIMAL NOT NULL,\n    SalesAmount DECIMAL NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = HASH(OrderNumber),\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE dbo.StageProduct\n(\n    ProductID NVARCHAR(10) NOT NULL,\n    ProductName NVARCHAR(200) NOT NULL,\n    ProductCategory NVARCHAR(200) NOT NULL,\n    Color NVARCHAR(10),\n    Size NVARCHAR(10),\n    ListPrice DECIMAL NOT NULL,\n    Discontinued BIT NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

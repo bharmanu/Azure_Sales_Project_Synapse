@@ -1,0 +1,100 @@
+{
+	"name": "pl_create_silver_tables",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach File",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('v_folder_sp_array')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Delete Silver Folder",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_silver_taxi_data_dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"folder_path": {
+											"value": "@item().folder_path",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "silver tables",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Delete Silver Folder",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@item().sp_name",
+									"type": "Expression"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_Serverless_db_nyc_taxi_ldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"v_folder_sp_array": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"folder_path": "silver/calendar",
+						"sp_name": "silver.usp_silver_calendar"
+					},
+					{
+						"folder_path": "silver/taxi_zone",
+						"sp_name": "silver.usp_silver_taxi_zone"
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-20T22:04:58Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

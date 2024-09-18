@@ -1,0 +1,20 @@
+{
+	"name": "Script_Analysis",
+	"properties": {
+		"folder": {
+			"name": "Project7_Scripts"
+		},
+		"content": {
+			"query": "CREATE DATABASE project_synapse;\nUSE project_synapse;\nALTER DATABASE project_synapse COLLATE Latin1_General_100_CI_AI_SC_UTF8;\n\nCREATE EXTERNAL DATA SOURCE project_data_csv\nWITH(\n    LOCATION = 'abfss://project-data@synapsestorageproject6.dfs.core.windows.net/csv'\n)\n\n--Added data types and renamed columns using indexes\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'Stock_Prices.csv',\n        DATA_SOURCE = 'project_data_csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = ',',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        symbol VARCHAR(5) 1,\n        stock_date DATE 2,\n        open_amt DECIMAL(18,2) 3,\n        high_amt DECIMAL(18,2) 4,\n        low_amt  DECIMAL(18,2) 5,\n        close_amt DECIMAL(18,2) 6,\n        volume INT 7\n    )\n    AS [result];\n    \n--Which date in the sample saw the largest overall trading volume?\nSELECT\n    TOP 1\n    stock_date, sum(volume) as total_volume\nFROM\n    OPENROWSET(\n        BULK 'Stock_Prices.csv',\n        DATA_SOURCE = 'project_data_csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = ',',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        symbol VARCHAR(5) 1,\n        stock_date DATE 2,\n        open_amt DECIMAL(18,2) 3,\n        high_amt DECIMAL(18,2) 4,\n        low_amt  DECIMAL(18,2) 5,\n        close_amt DECIMAL(18,2) 6,\n        volume BIGINT\n    )\n    AS [result]\n    GROUP BY stock_date\n    ORDER BY total_volume DESC;\n    \n--On which date did Amazon (AMZN) see the most volatility, measured by the difference between the high and low price?\nSELECT\n    top 1\n    symbol, stock_date, high_amt, low_amt, open_amt, close_amt, DIFFERENCE(high_amt, low_amt) as amt_diff\nFROM\n    OPENROWSET(\n        BULK 'Stock_Prices.csv',\n        DATA_SOURCE = 'project_data_csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = ',',\n        ROWTERMINATOR = '\\n'\n    )\n    WITH (\n        symbol VARCHAR(5) 1,\n        stock_date DATE 2,\n        open_amt DECIMAL(18,2) 3,\n        high_amt DECIMAL(18,2) 4,\n        low_amt  DECIMAL(18,2) 5,\n        close_amt DECIMAL(18,2) 6,\n        volume BIGINT\n    )\n    AS [result] \n    WHERE symbol = 'AMZN'\n    ORDER BY amt_diff DESC;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "project_synapse",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
