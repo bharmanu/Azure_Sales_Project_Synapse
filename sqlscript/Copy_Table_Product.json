@@ -1,6 +1,9 @@
 {
 	"name": "Copy_Table_Product",
 	"properties": {
+		"folder": {
+			"name": "5Sales_DWH_Scripts"
+		},
 		"content": {
 			"query": "IF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'product' AND O.TYPE = 'U' AND S.NAME = 'dwh')\nCREATE TABLE dwh.product\n\t(\n\t [ProductKey] int,\n\t [ProductName] nvarchar(4000),\n\t [CategoryName] nvarchar(4000),\n\t [SubcategoryName] nvarchar(4000),\n\t [TotalOrder] bigint\n\t)\nWITH\n\t(\n\tDISTRIBUTION = ROUND_ROBIN,\n\t CLUSTERED COLUMNSTORE INDEX\n\t -- HEAP\n\t)\nGO\n\n--Uncomment the 4 lines below to create a stored procedure for data pipeline orchestration​\n--CREATE PROC bulk_load_product\n--AS\n--BEGIN\nCOPY INTO dwh.product\n(ProductKey 1, ProductName 2, CategoryName 3, SubcategoryName 4, TotalOrder 5)\nFROM 'https://ap203synapsestorage.dfs.core.windows.net/data/gold/product_agg'\nWITH\n(\n\tFILE_TYPE = 'PARQUET'\n\t,MAXERRORS = 0\n\t,COMPRESSION = 'snappy'\n)\n--END\nGO\n\nSELECT TOP 100 * FROM dwh.product\nGO",
 			"metadata": {
