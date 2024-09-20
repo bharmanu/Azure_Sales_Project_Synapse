@@ -11,8 +11,17 @@
 		"ls_ap203storageaccount_accountKey": {
 			"value": ""
 		},
+		"sqladmin123-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:sqladmin123.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
 		"ap203workspacesynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://ap203synapsestorage.dfs.core.windows.net"
+		},
+		"ls_Serverless_db_nyc_taxi_ldw_properties_typeProperties_server": {
+			"value": "tcp:sqladmin123-ondemand.sql.azuresynapse.net,1433"
+		},
+		"ls_Serverless_db_nyc_taxi_ldw_properties_typeProperties_database": {
+			"value": "nyc_taxi_ldw"
 		},
 		"ls_ap203keyvault_properties_typeProperties_baseUrl": {
 			"value": "https://ap203keyvault1.vault.azure.net/"
@@ -28,6 +37,12 @@
 		},
 		"ls_synapsestorage_properties_typeProperties_url": {
 			"value": "https://ap203synapsestorage.dfs.core.windows.net/"
+		},
+		"ls_synapsestoragemanu_properties_typeProperties_url": {
+			"value": "https://synapsestoragemanu.dfs.core.windows.net/"
+		},
+		"sqladmin123-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://synapsestoragemanu.dfs.core.windows.net"
 		}
 	}
 }
