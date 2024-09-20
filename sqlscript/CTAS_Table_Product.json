@@ -1,0 +1,20 @@
+{
+	"name": "CTAS_Table_Product",
+	"properties": {
+		"folder": {
+			"name": "5Sales_DWH_Scripts"
+		},
+		"content": {
+			"query": "CREATE SCHEMA dwh\nGO\n\nCREATE TABLE dwh.product_agg\nWITH   \n  (   \n    CLUSTERED COLUMNSTORE INDEX,  \n    DISTRIBUTION = ROUND_ROBIN  \n  )  \nAS SELECT * FROM staging.product_agg\nGO\n\nSELECT * FROM dwh.product_agg;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Sales_dwh",
+				"poolName": "Sales_dwh"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

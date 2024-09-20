@@ -1,0 +1,20 @@
+{
+	"name": "Ext_Staging_Product",
+	"properties": {
+		"folder": {
+			"name": "5Sales_DWH_Scripts"
+		},
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'data_ap203synapsestorage_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [data_ap203synapsestorage_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://data@ap203synapsestorage.dfs.core.windows.net' \n\t)\nGO\n\nCREATE SCHEMA staging\nGO\n\nCREATE EXTERNAL TABLE staging.product_agg (\n\t[ProductKey] int,\n\t[ProductName] nvarchar(4000),\n\t[CategoryName] nvarchar(4000),\n\t[SubcategoryName] nvarchar(4000),\n\t[TotalOrder] bigint\n\t)\n\tWITH (\n\tLOCATION = 'gold/product_agg',\n\tDATA_SOURCE = [data_ap203synapsestorage_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM staging.product_agg\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Sales_dwh",
+				"poolName": "Sales_dwh"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
