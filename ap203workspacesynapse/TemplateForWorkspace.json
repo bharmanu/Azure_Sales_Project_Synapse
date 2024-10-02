@@ -2929,26 +2929,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/steamAnalyticsScript')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "CREATE TABLE VehicleTollBooth\n(\n    Make VARCHAR(100),\n    Model VARCHAR(100),\n    VehicleType INT,\n    State VARCHAR(20),\n    TollAmount INT\n)\n\nSELECT State, TollAmount FROM VehicleTollBooth;",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "dedicatedpoolmanu",
-						"poolName": "dedicatedpoolmanu"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/Nb_Gold_Sales_Result')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
@@ -3330,7 +3310,7 @@
 			"location": "eastus2"
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Script2_StramAnalytics_VehicleTollBooth')]",
+			"name": "[concat(parameters('workspaceName'), '/Script2_StreamAnalytics_VehicleTollBooth')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
