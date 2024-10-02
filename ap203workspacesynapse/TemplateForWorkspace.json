@@ -3328,6 +3328,26 @@
 			},
 			"dependsOn": [],
 			"location": "eastus2"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Script2_StramAnalytics_VehicleTollBooth')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE TABLE VehicleTollBooth\n(\n\tMake varchar(100),\n\tModel varchar(100),\n\tVehicleType int,\n\tState varchar(10),\n\tTollAmount int\n)\n\nSELECT * FROM VehicleTollBooth;\n\nSELECT count(*) FROM VehicleTollBooth;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Sales_dwh",
+						"poolName": "Sales_dwh"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
 		}
 	]
 }
