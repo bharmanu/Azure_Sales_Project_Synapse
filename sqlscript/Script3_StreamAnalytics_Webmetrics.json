@@ -1,0 +1,17 @@
+{
+	"name": "Script3_StreamAnalytics_Webmetrics",
+	"properties": {
+		"content": {
+			"query": "CREATE TABLE Webmetrics\n(\n\tMinimum DECIMAL,\n\tMaximum DECIMAL,\n\tAverage DECIMAL,\n\tMetrictime datetime,\n\tMetricname varchar(200)\n)\n\nSELECT * FROM Webmetrics;\n\nSELECT count(*) FROM Webmetrics;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Sales_dwh",
+				"poolName": "Sales_dwh"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
