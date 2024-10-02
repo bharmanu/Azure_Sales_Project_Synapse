@@ -2,7 +2,7 @@
 	"name": "Script2_StramAnalytics_VehicleTollBooth",
 	"properties": {
 		"content": {
-			"query": "CREATE TABLE VehicleTollBooth\n(\n\tMake varchar(100),\n\tModel varchar(100),\n\tVehicleType int,\n\tState varchar(10),\n\tTollAmount int\n)\n\nSELECT * FROM VehicleTollBooth;",
+			"query": "CREATE TABLE VehicleTollBooth\n(\n\tMake varchar(100),\n\tModel varchar(100),\n\tVehicleType int,\n\tState varchar(10),\n\tTollAmount int\n)\n\nSELECT * FROM VehicleTollBooth;\n\nSELECT count(*) FROM VehicleTollBooth;",
 			"metadata": {
 				"language": "sql"
 			},
